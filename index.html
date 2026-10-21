@@ -159,6 +159,21 @@ ul.stations{list-style:none;margin:0;padding:0 16px 30px;display:flex;flex-direc
 .nearbar button.ghost{background:var(--slate2);color:var(--snow);border:1px solid var(--edge)}
 .near-badge{font-size:9.5px;font-weight:700;letter-spacing:.05em;background:var(--live);color:#20180A;padding:2px 6px;border-radius:5px}
 
+/* ---------- hisob to'ldirish ---------- */
+.amts{display:flex;gap:7px;margin-bottom:12px}
+.amts button{flex:1;background:var(--slate2);border:1px solid var(--edge);color:var(--snow);border-radius:12px;padding:12px 4px;font-family:var(--display);font-weight:600;font-size:13px;cursor:pointer;font-variant-numeric:tabular-nums}
+.amts button[aria-pressed="true"]{background:var(--live);color:#20180A;border-color:var(--live)}
+.pay{display:flex;align-items:center;gap:12px;background:var(--slate2);border:1px solid var(--edge);border-radius:14px;padding:13px;margin-bottom:8px;cursor:pointer;transition:.16s}
+.pay:active{transform:scale(.99)}
+.pay .pm{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:15px;flex:0 0 auto}
+.pay .pt{flex:1}
+.pay .pt b{display:block;font-size:14px;font-weight:600}
+.pay .pt span{font-size:11px;color:var(--mist)}
+.pay .arr{color:var(--mist);font-size:15px}
+.paying{text-align:center;padding:26px 0 10px}
+.paying .ring{width:46px;height:46px;border-radius:50%;border:3px solid var(--edge);border-top-color:var(--live);margin:0 auto 14px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 /* ---------- admin ---------- */
 .adm{display:none;padding:0 16px 40px}
 .adm.on{display:block}
@@ -839,15 +854,11 @@ document.getElementById('walletBtn').onclick = ()=>{
       <div class="stat" style="flex:2"><b class="num">${state.balance.toLocaleString('ru-RU')}</b><span>so'm balans</span></div>
       ${named && PROFILE.year ? `<div class="stat"><b class="num" style="font-size:14px">${PROFILE.year}</b><span>tug'ilgan yil</span></div>` : ''}
     </div>
-    <div class="notice" style="margin-top:14px"><span>◆</span><span>Prototipda to'ldirish simulyatsiya qilinadi. Haqiqiy versiyada Click, Payme yoki Uzum orqali ulanadi.</span></div>
     <div class="actions">
-      <button class="btn ghost" id="top50">+50 000</button>
-      <button class="btn primary" id="top100">+100 000</button>
+      <button class="btn primary" id="toTopUp" style="flex:1">Balansni to'ldirish</button>
     </div>
-    <button class="linkbtn" id="editProf">${named ? 'Ma\'lumotlarni o\'zgartirish' : 'Hisobni to\'ldirish'}</button>`;
-  const top = v => { state.balance += v; document.getElementById('balance').textContent = state.balance.toLocaleString('ru-RU'); haptic('medium'); closeSheet(); };
-  document.getElementById('top50').onclick = ()=>top(50000);
-  document.getElementById('top100').onclick = ()=>top(100000);
+    <button class="linkbtn" id="editProf">${named ? 'Ma\'lumotlarni o\'zgartirish' : 'Ma\'lumotlarni to\'ldirish'}</button>`;
+  document.getElementById('toTopUp').onclick = ()=>{ haptic(); openTopUp(); };
   document.getElementById('editProf').onclick = ()=>{
     closeSheet();
     if(PROFILE && PROFILE.name){
@@ -860,6 +871,88 @@ document.getElementById('walletBtn').onclick = ()=>{
   };
   scrim.classList.add('on'); sheet.classList.add('on');
 };
+
+/* ================= HISOBNI TO'LDIRISH ================= */
+const PAYERS = [
+  { key:'click', name:'Click',  hint:'Karta yoki Click Up ilovasi', ini:'C', bg:'rgba(35,150,235,.16)', fg:'#4FA8F0' },
+  { key:'payme', name:'Payme',  hint:'Payme ilovasi orqali',        ini:'P', bg:'rgba(60,200,180,.16)', fg:'#3FC9B4' },
+  { key:'uzum',  name:'Uzum Bank', hint:'Uzum ilovasi orqali',      ini:'U', bg:'rgba(150,110,240,.16)', fg:'#A58BF5' }
+];
+const AMOUNTS = [50000, 100000, 200000];
+let pickedAmount = 100000;
+
+function openTopUp(){
+  const render_ = ()=>{
+    body.innerHTML = `
+      <div class="sh-title"><h2>Balansni to'ldirish</h2></div>
+      <p class="sh-addr">Hozirgi balans: ${state.balance.toLocaleString('ru-RU')} so'm</p>
+
+      <div class="amts" id="amts">
+        ${AMOUNTS.map(a=>`<button data-a="${a}" aria-pressed="${a===pickedAmount}">${(a/1000)}k</button>`).join('')}
+      </div>
+      <div class="field" style="margin-bottom:16px">
+        <label>Yoki boshqa summa (so'm)</label>
+        <input id="customAmt" inputmode="numeric" placeholder="${pickedAmount.toLocaleString('ru-RU')}">
+      </div>
+
+      ${PAYERS.map(p=>`
+        <div class="pay" data-pay="${p.key}">
+          <div class="pm" style="background:${p.bg};color:${p.fg}">${p.ini}</div>
+          <div class="pt"><b>${p.name}</b><span>${p.hint}</span></div>
+          <span class="arr">→</span>
+        </div>`).join('')}
+
+      <div class="notice" style="margin-top:12px"><span>◆</span><span>Prototipda to'lov simulyatsiya qilinadi — haqiqiy pul yechilmaydi. Ishga tushganda bu tugmalar Click, Payme va Uzum to'lov sahifasiga olib boradi.</span></div>
+      <div class="actions"><button class="btn ghost" id="tuBack">Orqaga</button></div>`;
+
+    body.querySelectorAll('[data-a]').forEach(b=>{
+      b.onclick = ()=>{ pickedAmount = +b.dataset.a; document.getElementById('customAmt').value=''; haptic(); render_(); };
+    });
+    document.getElementById('customAmt').oninput = e => {
+      const v = parseInt(e.target.value.replace(/\D/g,''), 10);
+      if(!isNaN(v) && v > 0){ pickedAmount = v; body.querySelectorAll('[data-a]').forEach(b=>b.setAttribute('aria-pressed','false')); }
+    };
+    body.querySelectorAll('[data-pay]').forEach(el=>{
+      el.onclick = ()=>{
+        const p = PAYERS.find(x=>x.key===el.dataset.pay);
+        if(pickedAmount < 5000){ return; }
+        payFlow(p, pickedAmount);
+      };
+    });
+    document.getElementById('tuBack').onclick = ()=>{ document.getElementById('walletBtn').onclick(); };
+  };
+  render_();
+  scrim.classList.add('on'); sheet.classList.add('on');
+}
+
+function payFlow(p, amount){
+  haptic('medium');
+  body.innerHTML = `
+    <div class="sh-title"><h2>${p.name}</h2></div>
+    <p class="sh-addr">${amount.toLocaleString('ru-RU')} so'm</p>
+    <div class="paying">
+      <div class="ring"></div>
+      <div class="sub" style="font-size:12.5px;color:var(--mist)">To'lov sahifasiga o'tilmoqda…</div>
+    </div>
+    <div class="actions"><button class="btn ghost" id="tuCancel">Bekor qilish</button></div>`;
+  let cancelled = false;
+  document.getElementById('tuCancel').onclick = ()=>{ cancelled = true; openTopUp(); };
+  setTimeout(()=>{
+    if(cancelled) return;
+    state.balance += amount;
+    document.getElementById('balance').textContent = state.balance.toLocaleString('ru-RU');
+    haptic('medium');
+    body.innerHTML = `
+      <div class="sh-title"><h2>To'ldirildi</h2></div>
+      <p class="sh-addr">${p.name} · ${amount.toLocaleString('ru-RU')} so'm</p>
+      <div class="stats" style="margin-top:4px">
+        <div class="stat" style="flex:2"><b class="num">${state.balance.toLocaleString('ru-RU')}</b><span>yangi balans</span></div>
+      </div>
+      <div class="notice" style="margin-top:14px"><span>◆</span><span>Bu simulyatsiya — haqiqiy to'lov o'tmadi.</span></div>
+      <div class="actions"><button class="btn primary" id="tuDone">Yopish</button></div>`;
+    document.getElementById('tuDone').onclick = closeSheet;
+  }, 1800);
+}
 
 /* ================= ADMIN ================= */
 const MAIN_SEL = ['.cover','.nearbar','.mapwrap','.filters','.listhead','ul.stations','.empty','.foot'];
