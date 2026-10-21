@@ -143,6 +143,8 @@ ul.stations{list-style:none;margin:0;padding:0 16px 30px;display:flex;flex-direc
 .onb .legal{font-size:10.5px;color:var(--mist);line-height:1.5;margin:0 0 12px}
 .linkbtn{background:none;border:0;color:var(--mist);font-size:12.5px;text-decoration:underline;cursor:pointer;padding:12px;width:100%;font-family:var(--body)}
 .onb .step{display:flex;flex-direction:column;flex:1;min-height:0}
+.onb .btn,.onb .linkbtn{flex:0 0 auto}
+.onb .field,.onb .steps,.onb p,.onb h1{flex:0 0 auto}
 .steps{display:flex;gap:6px;margin-bottom:18px}
 .steps i{height:3px;flex:1;border-radius:99px;background:var(--edge);font-style:normal}
 .steps i.on{background:var(--live)}
@@ -762,9 +764,12 @@ if(tgUser){
   const full = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ');
   if(full) document.getElementById('oName').value = full;
 }
-if(!(tg && tg.requestContact)){
+/* "Telegramdagi raqam" tugmasi faqat Telegram ichida ma'noga ega:
+   tashqarida initData bo'sh bo'ladi, shuning uchun shu bo'yicha tekshiramiz */
+const inTelegram = !!(tg && tg.initData && tg.initData.length > 0 && typeof tg.requestContact === 'function');
+if(!inTelegram){
   document.getElementById('oShare').style.display = 'none';
-  document.getElementById('oShareHint').textContent = 'Telegram ichida ochilsa, raqamni bir bosishda yuborish mumkin bo\'ladi.';
+  document.getElementById('oShareHint').textContent = 'Telegram ichida ochilganda raqamni bir bosishda yuborish mumkin bo\'ladi. Brauzerda qo\'lda kiriting.';
 }
 
 let phoneValue = '';
