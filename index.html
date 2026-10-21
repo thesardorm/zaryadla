@@ -142,6 +142,20 @@ ul.stations{list-style:none;margin:0;padding:0 16px 30px;display:flex;flex-direc
 .onb .spacer{flex:1;min-height:14px}
 .onb .legal{font-size:10.5px;color:var(--mist);line-height:1.5;margin:0 0 12px}
 .linkbtn{background:none;border:0;color:var(--mist);font-size:12.5px;text-decoration:underline;cursor:pointer;padding:12px;width:100%;font-family:var(--body)}
+.onb .step{display:flex;flex-direction:column;flex:1;min-height:0}
+.steps{display:flex;gap:6px;margin-bottom:18px}
+.steps i{height:3px;flex:1;border-radius:99px;background:var(--edge);font-style:normal}
+.steps i.on{background:var(--live)}
+.steps i.done{background:rgba(255,201,60,.45)}
+
+/* ---------- eng yaqin / lokatsiya ---------- */
+.nearbar{margin:0 16px 12px;border:1px solid var(--edge);background:var(--slate);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:11px}
+.nearbar .nb{flex:1;min-width:0}
+.nearbar .nb b{display:block;font-size:13.5px;font-weight:600}
+.nearbar .nb span{font-size:11.5px;color:var(--mist)}
+.nearbar button{flex:0 0 auto;background:var(--live);color:#20180A;border:0;border-radius:11px;padding:10px 13px;font-family:var(--display);font-weight:600;font-size:12.5px;cursor:pointer}
+.nearbar button.ghost{background:var(--slate2);color:var(--snow);border:1px solid var(--edge)}
+.near-badge{font-size:9.5px;font-weight:700;letter-spacing:.05em;background:var(--live);color:#20180A;padding:2px 6px;border-radius:5px}
 
 /* ---------- admin ---------- */
 .adm{display:none;padding:0 16px 40px}
@@ -182,6 +196,11 @@ ul.stations{list-style:none;margin:0;padding:0 16px 30px;display:flex;flex-direc
   </div>
   <p id="coverNote"><b>Barcha operatorlar</b> — hamkor bo'lmaganlari ham. Mustaqil egalarning stansiyalari boshqa ilovalarda ko'rinmaydi.</p>
 </section>
+
+<div class="nearbar" id="nearbar">
+  <div class="nb" id="nearText"><b>Eng yaqin stansiyani topaymi?</b><span>Joylashuvingizni bir marta so'raymiz</span></div>
+  <button id="nearBtn">Topish</button>
+</div>
 
 <div class="mapwrap">
   <svg class="map" id="map" viewBox="0 0 390 300" xmlns="http://www.w3.org/2000/svg" aria-label="Toshkent xaritasi"></svg>
@@ -255,26 +274,41 @@ ul.stations{list-style:none;margin:0;padding:0 16px 30px;display:flex;flex-direc
 
 <div class="onb" id="onb">
   <div class="mark"><i></i>Voltly UZ</div>
-  <h1>Tanishib olaylik</h1>
-  <p class="lede">Bir marta to'ldirasiz. Keyin zaryadlash tarixi va balans shu hisobga bog'lanadi.</p>
 
-  <div class="field"><label>Ismingiz</label><input id="oName" placeholder="Sardor" autocomplete="given-name"></div>
-  <div class="field"><label>Telefon raqam</label><input id="oPhone" inputmode="tel" placeholder="+998 __ ___ __ __" autocomplete="tel"></div>
-  <div class="field"><label>Tug'ilgan kun <span style="opacity:.6">— ixtiyoriy</span></label><input id="oBirth" type="date"></div>
-  <div class="field">
-    <label>Jinsi <span style="opacity:.6">— ixtiyoriy</span></label>
-    <div class="segrow" id="oGender">
-      <button data-g="erkak" aria-pressed="false">Erkak</button>
-      <button data-g="ayol" aria-pressed="false">Ayol</button>
-      <button data-g="-" aria-pressed="false">Aytmayman</button>
-    </div>
+  <!-- 1-qadam: telefon -->
+  <div class="step" id="step1">
+    <div class="steps"><i class="on"></i><i></i></div>
+    <h1>Telefon raqamingiz</h1>
+    <p class="lede">Zaryadlash tarixi va balans shu raqamga bog'lanadi. Boshqa hech narsa so'ralmaydi.</p>
+    <button class="btn primary" id="oShare" style="width:100%;margin-bottom:10px">Telegramdagi raqamni yuborish</button>
+    <p class="legal" id="oShareHint" style="margin-bottom:16px">Bir bosishda — qo'lda yozish shart emas.</p>
+    <div class="field"><label>Yoki qo'lda kiriting</label><input id="oPhone" inputmode="tel" placeholder="+998 __ ___ __ __" autocomplete="tel"></div>
+    <div class="err" id="oErr"></div>
+    <div class="spacer"></div>
+    <p class="legal">Prototip: ma'lumot faqat shu qurilmada saqlanadi, hech qayerga yuborilmaydi.</p>
+    <button class="btn primary" id="oNext">Davom etish</button>
   </div>
-  <div class="err" id="oErr"></div>
 
-  <div class="spacer"></div>
-  <p class="legal">Prototip: ma'lumot faqat shu telefonda saqlanadi, hech qayerga yuborilmaydi.</p>
-  <button class="btn primary" id="oSave">Davom etish</button>
-  <button class="linkbtn" id="oSkip">Hozircha o'tkazib yuborish</button>
+  <!-- 2-qadam: profil (ixtiyoriy) -->
+  <div class="step" id="step2" style="display:none">
+    <div class="steps"><i class="done"></i><i class="on"></i></div>
+    <h1>Bir-ikki savol</h1>
+    <p class="lede">Tug'ilgan kuningizda chegirma yuborishimiz uchun. Hohlamasangiz keyinroq to'ldirasiz.</p>
+    <div class="field"><label>Ismingiz</label><input id="oName" placeholder="Ismingiz" autocomplete="given-name"></div>
+    <div class="field"><label>Tug'ilgan yil</label><input id="oYear" inputmode="numeric" maxlength="4" placeholder="1995"></div>
+    <div class="field">
+      <label>Jinsi</label>
+      <div class="segrow" id="oGender">
+        <button data-g="erkak" aria-pressed="false">Erkak</button>
+        <button data-g="ayol" aria-pressed="false">Ayol</button>
+        <button data-g="-" aria-pressed="false">Aytmayman</button>
+      </div>
+    </div>
+    <div class="err" id="oErr2"></div>
+    <div class="spacer"></div>
+    <button class="btn primary" id="oSave">Saqlash va davom etish</button>
+    <button class="linkbtn" id="oLater">Keyinroq to'ldiraman</button>
+  </div>
 </div>
 
 <div class="scrim" id="scrim"></div>
@@ -339,14 +373,24 @@ let CUSTOM = LS.get('vz_stations', []);
 let ALL = STATIONS.concat(CUSTOM);
 const refreshAll = () => { ALL = STATIONS.concat(CUSTOM); };
 
-const ME = {x:196, y:172};
+// Foydalanuvchi joylashuvi. real=false => xarita markazi (taxminiy), real=true => GPS
+const ME = { x:196, y:172, la:41.3110, lo:69.2500, real:false };
 let state = { mode:'all', connector:'all', freeOnly:false, sel:null, balance:85000, timer:null };
 
 /* ---------- filtering ---------- */
 const inMode = s => state.mode === 'all' ? true : OPS[s.op].yandex;
 const inConn = s => state.connector === 'all' ? true : s.c.some(c => c[0] === state.connector);
 const visible = () => ALL.filter(s => inMode(s) && inConn(s) && (!state.freeOnly || s.free));
-const dist = s => Math.round(Math.hypot(s.x-ME.x, s.y-ME.y) * 0.06 * 10)/10;
+/* haqiqiy masofa (km) — yer sharining egriligi hisobga olingan */
+function haversine(la1, lo1, la2, lo2){
+  const R = 6371, rad = Math.PI/180;
+  const dLa = (la2-la1)*rad, dLo = (lo2-lo1)*rad;
+  const a = Math.sin(dLa/2)**2 + Math.cos(la1*rad)*Math.cos(la2*rad)*Math.sin(dLo/2)**2;
+  return R * 2 * Math.asin(Math.sqrt(a));
+}
+const dist = s => (s.la && s.lo)
+  ? Math.round(haversine(ME.la, ME.lo, s.la, s.lo) * 10) / 10
+  : Math.round(Math.hypot(s.x-ME.x, s.y-ME.y) * 0.06 * 10) / 10;
 
 /* ---------- map ---------- */
 function drawMap(){
@@ -413,13 +457,14 @@ function drawList(){
   const ul = document.getElementById('list');
   document.getElementById('empty').style.display = vis.length ? 'none' : 'block';
   document.getElementById('listNote').textContent = vis.length ? vis.length+" ta topildi" : "";
-  ul.innerHTML = vis.map(s=>{
+  ul.innerHTML = vis.map((s,i)=>{
     const o = OPS[s.op];
     const kw = Math.max(...s.c.map(c=>c[1]));
+    const nearest = (i === 0 && ME.real) ? ' <span class="near-badge">ENG YAQIN</span>' : '';
     return `<li class="card" data-id="${s.id}">
       <span class="dot" style="background:${o.hex}"></span>
       <div class="cbody">
-        <h3>${s.n}</h3>
+        <h3>${s.n}${nearest}</h3>
         <div class="meta">
           <span class="op">${o.name}</span>
           <span>${dist(s)} km</span>
@@ -646,6 +691,51 @@ document.getElementById('walletBtn').onclick = ()=>{
 document.getElementById('mAll').onclick = ()=>{ state.mode='all'; haptic(); render(); };
 document.getElementById('mYa').onclick  = ()=>{ state.mode='yandex'; haptic(); render(); };
 
+/* ================= LOKATSIYA ================= */
+const nearbar = document.getElementById('nearbar');
+
+function setNearbar(stateKey, extra){
+  const t = document.getElementById('nearText');
+  const btn = document.getElementById('nearBtn');
+  if(stateKey === 'ask'){
+    t.innerHTML = `<b>Eng yaqin stansiyani topaymi?</b><span>Joylashuvingizni bir marta so'raymiz</span>`;
+    btn.textContent = 'Topish'; btn.className = ''; btn.disabled = false;
+  } else if(stateKey === 'busy'){
+    t.innerHTML = `<b>Aniqlanmoqda…</b><span>Joylashuv so'ralmoqda</span>`;
+    btn.textContent = '…'; btn.disabled = true;
+  } else if(stateKey === 'ok'){
+    t.innerHTML = `<b>${extra.name}</b><span>Eng yaqin · ${extra.km} km${extra.acc ? ' · aniqlik ±'+extra.acc+' m' : ''}</span>`;
+    btn.textContent = 'Yangilash'; btn.className = 'ghost'; btn.disabled = false;
+  } else if(stateKey === 'fail'){
+    t.innerHTML = `<b>Joylashuv olinmadi</b><span>${extra}</span>`;
+    btn.textContent = 'Qayta'; btn.className = 'ghost'; btn.disabled = false;
+  }
+}
+
+function applyLocation(la, lo, acc){
+  ME.la = la; ME.lo = lo; ME.real = true;
+  const q = proj(la, lo); ME.x = q.x; ME.y = q.y;
+  LS.set('vz_loc', { la, lo });
+  render();
+  const vis = visible().sort((a,b)=>dist(a)-dist(b));
+  if(vis.length) setNearbar('ok', { name: vis[0].n, km: dist(vis[0]), acc: acc ? Math.round(acc) : 0 });
+}
+
+function askLocation(){
+  if(!navigator.geolocation){ setNearbar('fail', 'Bu qurilma joylashuvni bermaydi'); return; }
+  setNearbar('busy');
+  navigator.geolocation.getCurrentPosition(
+    pos => { haptic('medium'); applyLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy); },
+    e => setNearbar('fail', e.code === 1 ? 'Ruxsat berilmadi' : 'Signal yo\'q, qayta urinib ko\'ring'),
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+  );
+}
+document.getElementById('nearBtn').onclick = askLocation;
+
+/* oldin ruxsat berilgan bo'lsa — qayta so'ramasdan tiklaymiz */
+const savedLoc = LS.get('vz_loc', null);
+if(savedLoc && savedLoc.la){ ME.la = savedLoc.la; ME.lo = savedLoc.lo; ME.real = true; const q0 = proj(savedLoc.la, savedLoc.lo); ME.x = q0.x; ME.y = q0.y; }
+
 /* ================= PROFIL / RO'YXATDAN O'TISH ================= */
 let PROFILE = LS.get('vz_profile', null);
 const onb = document.getElementById('onb');
@@ -659,26 +749,77 @@ document.querySelectorAll('#oGender button').forEach(btn=>{
   };
 });
 
-function showOnb(){ onb.classList.add('on'); }
+function showOnb(step){
+  onb.classList.add('on');
+  document.getElementById('step1').style.display = step === 2 ? 'none' : 'flex';
+  document.getElementById('step2').style.display = step === 2 ? 'flex' : 'none';
+}
 function hideOnb(){ onb.classList.remove('on'); }
 
-document.getElementById('oSave').onclick = ()=>{
-  const name  = document.getElementById('oName').value.trim();
+/* Telegram allaqachon bilgan narsalarni oldindan to'ldiramiz */
+const tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) || null;
+if(tgUser){
+  const full = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ');
+  if(full) document.getElementById('oName').value = full;
+}
+if(!(tg && tg.requestContact)){
+  document.getElementById('oShare').style.display = 'none';
+  document.getElementById('oShareHint').textContent = 'Telegram ichida ochilsa, raqamni bir bosishda yuborish mumkin bo\'ladi.';
+}
+
+let phoneValue = '';
+
+document.getElementById('oShare').onclick = ()=>{
+  haptic();
+  try {
+    tg.requestContact(ok => {
+      if(ok){
+        const c = (tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
+        phoneValue = (c.phone_number) ? c.phone_number : 'Telegram orqali tasdiqlandi';
+        document.getElementById('oPhone').value = phoneValue;
+        document.getElementById('oErr').textContent = '';
+        goStep2();
+      }
+    });
+  } catch(e){ document.getElementById('oErr').textContent = 'Telegram raqamni bermadi — qo\'lda kiriting.'; }
+};
+
+function goStep2(){
+  const name = document.getElementById('oName').value.trim();
+  PROFILE = Object.assign({}, PROFILE, { phone: phoneValue || document.getElementById('oPhone').value.trim(), name });
+  LS.set('vz_profile', PROFILE);
+  haptic('medium');
+  showOnb(2);
+}
+
+document.getElementById('oNext').onclick = ()=>{
   const phone = document.getElementById('oPhone').value.trim();
-  const birth = document.getElementById('oBirth').value;
-  const err   = document.getElementById('oErr');
-  if(name.length < 2){ err.textContent = 'Ismingizni kiriting.'; return; }
-  if(phone.replace(/\D/g,'').length < 9){ err.textContent = 'Telefon raqamni to\'liq kiriting.'; return; }
+  const err = document.getElementById('oErr');
+  if(phone.replace(/\D/g,'').length < 9 && !phoneValue){ err.textContent = 'Telefon raqamni to\'liq kiriting.'; return; }
   err.textContent = '';
-  PROFILE = { name, phone, birth: birth || '', gender: pickedGender || '' };
+  phoneValue = phone;
+  goStep2();
+};
+
+document.getElementById('oSave').onclick = ()=>{
+  const name = document.getElementById('oName').value.trim();
+  const yr   = document.getElementById('oYear').value.trim();
+  const err  = document.getElementById('oErr2');
+  const nowY = new Date().getFullYear();
+  if(yr && (!/^\d{4}$/.test(yr) || +yr < 1920 || +yr > nowY - 14)){
+    err.textContent = 'Tug\'ilgan yilni to\'g\'ri kiriting.'; return;
+  }
+  err.textContent = '';
+  PROFILE = Object.assign({}, PROFILE, { name, year: yr || '', gender: pickedGender || '' });
   LS.set('vz_profile', PROFILE);
   haptic('medium');
   hideOnb();
+  if(!ME.real) setNearbar('ask');
 };
 
-document.getElementById('oSkip').onclick = ()=>{
-  LS.set('vz_profile', { skipped:true });
-  PROFILE = { skipped:true };
+document.getElementById('oLater').onclick = ()=>{
+  PROFILE = Object.assign({}, PROFILE, { later:true });
+  LS.set('vz_profile', PROFILE);
   hideOnb();
 };
 
@@ -691,7 +832,7 @@ document.getElementById('walletBtn').onclick = ()=>{
     <p class="sh-addr">${named ? PROFILE.name + ' · ' + PROFILE.phone : 'Hisob to\'ldirilmagan'}</p>
     <div class="stats" style="margin-top:0">
       <div class="stat" style="flex:2"><b class="num">${state.balance.toLocaleString('ru-RU')}</b><span>so'm balans</span></div>
-      ${named && PROFILE.birth ? `<div class="stat"><b class="num" style="font-size:14px">${PROFILE.birth}</b><span>tug'ilgan kun</span></div>` : ''}
+      ${named && PROFILE.year ? `<div class="stat"><b class="num" style="font-size:14px">${PROFILE.year}</b><span>tug'ilgan yil</span></div>` : ''}
     </div>
     <div class="notice" style="margin-top:14px"><span>◆</span><span>Prototipda to'ldirish simulyatsiya qilinadi. Haqiqiy versiyada Click, Payme yoki Uzum orqali ulanadi.</span></div>
     <div class="actions">
@@ -706,18 +847,17 @@ document.getElementById('walletBtn').onclick = ()=>{
     closeSheet();
     if(PROFILE && PROFILE.name){
       document.getElementById('oName').value  = PROFILE.name;
-      document.getElementById('oPhone').value = PROFILE.phone || '';
-      document.getElementById('oBirth').value = PROFILE.birth || '';
+      document.getElementById('oYear').value  = PROFILE.year || '';
       pickedGender = PROFILE.gender || '';
       document.querySelectorAll('#oGender button').forEach(x=>x.setAttribute('aria-pressed', x.dataset.g===pickedGender));
     }
-    showOnb();
+    showOnb(2);
   };
   scrim.classList.add('on'); sheet.classList.add('on');
 };
 
 /* ================= ADMIN ================= */
-const MAIN_SEL = ['.cover','.mapwrap','.filters','.listhead','ul.stations','.empty','.foot'];
+const MAIN_SEL = ['.cover','.nearbar','.mapwrap','.filters','.listhead','ul.stations','.empty','.foot'];
 const adminView = document.getElementById('adminView');
 
 function setAdmin(on){
@@ -822,5 +962,11 @@ window.addEventListener('hashchange', routeHash);
 /* ================= BOSHLASH ================= */
 render();
 routeHash();
-if(location.hash.toLowerCase() !== '#admin' && !PROFILE) showOnb();
+if(ME.real){
+  const v0 = visible().sort((a,b)=>dist(a)-dist(b));
+  if(v0.length) setNearbar('ok', { name: v0[0].n, km: dist(v0[0]), acc: 0 });
+} else {
+  setNearbar('ask');
+}
+if(location.hash.toLowerCase() !== '#admin' && !PROFILE) showOnb(1);
 </script>
