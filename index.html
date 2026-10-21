@@ -1,0 +1,471 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zaryadla — prototip</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#0B1220;
+  --slate:#141E30;
+  --slate2:#1B2840;
+  --edge:#26344E;
+  --mist:#8FA3BF;
+  --snow:#F2F6FB;
+  --live:#FFC93C;
+  --danger:#FF6B6B;
+
+  --op-tokbor:#34D399;
+  --op-spektr:#F59E0B;
+  --op-mustang:#F472B6;
+  --op-bset:#22D3EE;
+  --op-fast:#A78BFA;
+  --op-indie:#94A3B8;
+
+  --display:"Space Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --body:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--ink);color:var(--snow);font-family:var(--body)}
+body{max-width:460px;margin:0 auto;min-height:100vh;overflow-x:hidden}
+.num{font-family:var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:30;background:linear-gradient(var(--ink) 70%,rgba(11,18,32,0));padding:14px 16px 10px;display:flex;align-items:center;gap:10px}
+.brand{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.03em;display:flex;align-items:center;gap:7px}
+.brand i{width:9px;height:9px;border-radius:50%;background:var(--live);box-shadow:0 0 0 4px rgba(255,201,60,.16);font-style:normal}
+.tag{font-size:10px;color:var(--mist);border:1px solid var(--edge);border-radius:999px;padding:2px 7px;letter-spacing:.06em;text-transform:uppercase}
+.wallet{margin-left:auto;background:var(--slate);border:1px solid var(--edge);border-radius:999px;padding:7px 12px;display:flex;align-items:center;gap:7px;cursor:pointer}
+.wallet b{font-family:var(--display);font-size:14px;font-variant-numeric:tabular-nums}
+.wallet span{font-size:10px;color:var(--mist)}
+
+/* ---------- coverage switch (the signature) ---------- */
+.cover{margin:0 16px 12px;border:1px solid var(--edge);background:var(--slate);border-radius:16px;padding:12px 14px}
+.cover-top{display:flex;align-items:center;gap:10px}
+.seg{display:flex;background:var(--ink);border-radius:999px;padding:3px;border:1px solid var(--edge)}
+.seg button{border:0;background:transparent;color:var(--mist);font-family:var(--display);font-weight:600;font-size:12px;padding:7px 13px;border-radius:999px;cursor:pointer;transition:.18s}
+.seg button[aria-pressed="true"]{background:var(--live);color:#20180A}
+.count{margin-left:auto;text-align:right;line-height:1.1}
+.count b{font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
+.count b em{font-style:normal;color:var(--mist);font-size:13px}
+.count span{display:block;font-size:10px;color:var(--mist);letter-spacing:.04em}
+.cover p{margin:9px 0 0;font-size:11.5px;line-height:1.45;color:var(--mist)}
+.cover p b{color:var(--snow);font-weight:600}
+
+/* ---------- map ---------- */
+.mapwrap{position:relative;margin:0 16px;border-radius:20px;overflow:hidden;border:1px solid var(--edge);background:#0A1220}
+svg.map{display:block;width:100%;height:auto}
+.legend{position:absolute;left:10px;bottom:10px;right:10px;display:flex;flex-wrap:wrap;gap:5px}
+.lg{display:flex;align-items:center;gap:5px;background:rgba(11,18,32,.82);backdrop-filter:blur(6px);border:1px solid var(--edge);border-radius:999px;padding:4px 9px;font-size:10.5px;color:var(--mist)}
+.lg i{width:7px;height:7px;border-radius:50%;font-style:normal}
+
+/* ---------- filters ---------- */
+.filters{display:flex;gap:7px;overflow-x:auto;padding:14px 16px 4px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--edge);background:var(--slate);color:var(--mist);border-radius:999px;padding:8px 13px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.16s;font-family:var(--body)}
+.chip[aria-pressed="true"]{background:var(--snow);color:var(--ink);border-color:var(--snow)}
+
+/* ---------- list ---------- */
+.listhead{display:flex;align-items:baseline;gap:8px;padding:16px 16px 8px}
+.listhead h2{margin:0;font-family:var(--display);font-size:15px;font-weight:600;letter-spacing:-.01em}
+.listhead span{font-size:11px;color:var(--mist)}
+ul.stations{list-style:none;margin:0;padding:0 16px 30px;display:flex;flex-direction:column;gap:9px}
+.card{background:var(--slate);border:1px solid var(--edge);border-radius:16px;padding:13px 14px;display:flex;gap:12px;align-items:center;cursor:pointer;transition:.16s}
+.card:active{transform:scale(.985)}
+.card.off{opacity:.34}
+.dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.cbody{flex:1;min-width:0}
+.cbody h3{margin:0 0 3px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--mist);flex-wrap:wrap}
+.meta .op{color:var(--snow);font-weight:600}
+.price{text-align:right;flex:0 0 auto}
+.price b{font-family:var(--display);font-size:15px;font-variant-numeric:tabular-nums;display:block}
+.price span{font-size:10px;color:var(--mist)}
+.free{font-size:10px;font-weight:700;letter-spacing:.04em;padding:2px 6px;border-radius:5px}
+.free.y{background:rgba(52,211,153,.15);color:#34D399}
+.free.n{background:rgba(255,107,107,.14);color:var(--danger)}
+.empty{margin:0 16px;border:1px dashed var(--edge);border-radius:16px;padding:26px 18px;text-align:center;color:var(--mist);font-size:13px;line-height:1.5}
+
+/* ---------- sheet ---------- */
+.scrim{position:fixed;inset:0;background:rgba(4,8,15,.72);opacity:0;pointer-events:none;transition:.22s;z-index:40}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;max-width:460px;margin:0 auto;background:var(--slate);border-radius:22px 22px 0 0;border-top:1px solid var(--edge);padding:10px 16px 26px;transform:translateY(102%);transition:transform .28s cubic-bezier(.22,1,.36,1);max-height:88vh;overflow-y:auto}
+.sheet.on{transform:translateY(0)}
+.grab{width:38px;height:4px;border-radius:99px;background:var(--edge);margin:0 auto 14px}
+.sh-title{display:flex;align-items:flex-start;gap:10px;margin-bottom:4px}
+.sh-title h2{margin:0;font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.02em;flex:1}
+.badge{font-size:11px;font-weight:700;padding:4px 9px;border-radius:8px;flex:0 0 auto}
+.sh-addr{margin:0 0 14px;font-size:12.5px;color:var(--mist)}
+.notice{display:flex;gap:9px;align-items:flex-start;background:rgba(255,201,60,.09);border:1px solid rgba(255,201,60,.28);border-radius:12px;padding:10px 12px;margin-bottom:14px;font-size:11.5px;line-height:1.45;color:#F6DC9A}
+.conn{display:flex;align-items:center;gap:12px;background:var(--slate2);border:1px solid var(--edge);border-radius:14px;padding:11px 13px;margin-bottom:8px}
+.conn .cn{flex:1}
+.conn .cn b{display:block;font-size:13.5px;font-weight:600}
+.conn .cn span{font-size:11px;color:var(--mist)}
+.conn .kw{font-family:var(--display);font-size:13px;font-variant-numeric:tabular-nums;color:var(--mist)}
+.actions{display:flex;gap:9px;margin-top:14px}
+.btn{flex:1;border:0;border-radius:14px;padding:15px;font-family:var(--display);font-weight:600;font-size:14px;cursor:pointer;transition:.16s}
+.btn.primary{background:var(--live);color:#20180A}
+.btn.ghost{background:var(--slate2);color:var(--snow);border:1px solid var(--edge)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ---------- session ---------- */
+.gauge{text-align:center;padding:6px 0 2px}
+.gauge .big{font-family:var(--display);font-size:52px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.04em;line-height:1}
+.gauge .big em{font-style:normal;font-size:19px;color:var(--mist);margin-left:4px}
+.gauge .sub{font-size:11.5px;color:var(--mist);margin-top:5px;letter-spacing:.04em}
+.bars{display:flex;gap:3px;justify-content:center;margin:16px 0 4px;height:34px;align-items:flex-end}
+.bars i{width:5px;border-radius:2px;background:var(--edge);font-style:normal;transition:.3s}
+.bars i.on{background:var(--live)}
+.stats{display:flex;gap:8px;margin-top:16px}
+.stat{flex:1;background:var(--slate2);border:1px solid var(--edge);border-radius:14px;padding:11px 12px}
+.stat b{display:block;font-family:var(--display);font-size:18px;font-variant-numeric:tabular-nums}
+.stat span{font-size:10.5px;color:var(--mist)}
+.foot{margin:22px 16px 34px;font-size:11px;color:var(--mist);line-height:1.55;border-top:1px solid var(--edge);padding-top:14px}
+.foot b{color:var(--snow)}
+</style>
+
+<header>
+  <div class="brand"><i></i>Zaryadla</div>
+  <div class="tag">prototip</div>
+  <div class="wallet" id="walletBtn">
+    <div>
+      <b class="num" id="balance">85 000</b>
+      <span>so'm</span>
+    </div>
+  </div>
+</header>
+
+<section class="cover">
+  <div class="cover-top">
+    <div class="seg" role="group" aria-label="Qamrov">
+      <button id="mAll" aria-pressed="true">Hammasi</button>
+      <button id="mYa" aria-pressed="false">Yandexda bor</button>
+    </div>
+    <div class="count">
+      <b class="num" id="cNow">21</b><b class="num"><em id="cTot">/21</em></b>
+      <span>STANSIYA</span>
+    </div>
+  </div>
+  <p id="coverNote"><b>Barcha operatorlar</b> — hamkor bo'lmaganlari ham. Mustaqil egalarning stansiyalari boshqa ilovalarda ko'rinmaydi.</p>
+</section>
+
+<div class="mapwrap">
+  <svg class="map" id="map" viewBox="0 0 390 300" xmlns="http://www.w3.org/2000/svg" aria-label="Toshkent xaritasi"></svg>
+  <div class="legend" id="legend"></div>
+</div>
+
+<div class="filters" id="filters"></div>
+
+<div class="listhead">
+  <h2>Yaqin atrofda</h2>
+  <span id="listNote"></span>
+</div>
+<ul class="stations" id="list"></ul>
+<div class="empty" id="empty" style="display:none">Bu filtrga mos stansiya yo'q.<br>Konnektor turini o'zgartiring yoki "Faqat bo'sh"ni o'chiring.</div>
+
+<p class="foot">
+  <b>Bu ishlaydigan prototip, tayyor mahsulot emas.</b> Xarita sxematik, stansiya ma'lumotlari namuna uchun kiritilgan, to'lov simulyatsiya qilinadi.
+  Haqiqiy versiyada xarita Yandex Maps yoki 2GIS SDK orqali, stansiya holati operator API/OCPI orqali, to'lov esa Click/Payme orqali ulanadi.
+</p>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
+
+<script>
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { try { tg.ready(); tg.expand(); } catch(e){} }
+const haptic = (t='light') => { try { tg.HapticFeedback.impactOccurred(t); } catch(e){} };
+
+const OPS = {
+  tokbor:  {name:'Tokbor',  color:'var(--op-tokbor)',  hex:'#34D399', yandex:true },
+  spektr:  {name:'Spektr',  color:'var(--op-spektr)',  hex:'#F59E0B', yandex:true },
+  bset:    {name:'Bset',    color:'var(--op-bset)',    hex:'#22D3EE', yandex:true },
+  fast:    {name:'Fast',    color:'var(--op-fast)',    hex:'#A78BFA', yandex:true },
+  mustang: {name:'Mustang', color:'var(--op-mustang)', hex:'#F472B6', yandex:false},
+  indie:   {name:'Mustaqil',color:'var(--op-indie)',   hex:'#94A3B8', yandex:false}
+};
+
+// Sxematik koordinatalar (0-390 / 0-300), Toshkent joylashuviga taxminan mos
+const STATIONS = [
+  {id:1,  n:"Köfteci Ismail",        a:"Qorataш ko'chasi",        op:'bset',    x:196,y:150, p:2500, free:true,  c:[['GB/T DC',120],['GB/T DC',120]]},
+  {id:2,  n:"Compass Mall",          a:"Bunyodkor shoh ko'chasi", op:'tokbor',  x:150,y:196, p:2400, free:true,  c:[['GB/T DC',60],['Type 2',22]]},
+  {id:3,  n:"Chorsu avtoturargoh",   a:"Chorsu",                  op:'tokbor',  x:178,y:132, p:2400, free:false, c:[['GB/T DC',80]]},
+  {id:4,  n:"Next Mall",             a:"Amir Temur shoh ko'chasi",op:'fast',    x:236,y:128, p:2700, free:true,  c:[['CCS2',150],['GB/T DC',120]]},
+  {id:5,  n:"Riviera Hotel",         a:"Yunusobod 4-kvartal",     op:'spektr',  x:242,y:88,  p:2600, free:true,  c:[['Type 2',22]]},
+  {id:6,  n:"Oybek metro",           a:"Oybek ko'chasi",          op:'bset',    x:214,y:170, p:2500, free:false, c:[['GB/T DC',60]]},
+  {id:7,  n:"Sergeli avtobozor",     a:"Sergeli 7-mavze",         op:'mustang', x:184,y:250, p:2200, free:true,  c:[['GB/T DC',60],['GB/T DC',60]]},
+  {id:8,  n:"Aviasozlar bekati",     a:"Ko'katas ko'chasi",       op:'indie',   x:120,y:216, p:2100, free:true,  c:[['GB/T DC',40]]},
+  {id:9,  n:"Yashnobod servis",      a:"Yashnobod tumani",        op:'indie',   x:288,y:190, p:2150, free:true,  c:[['GB/T DC',60],['Type 2',11]]},
+  {id:10, n:"Magic City",            a:"Bobur ko'chasi",          op:'fast',    x:222,y:186, p:2700, free:true,  c:[['CCS2',180]]},
+  {id:11, n:"Chilonzor 19",          a:"Chilonzor 19-kvartal",    op:'tokbor',  x:140,y:180, p:2400, free:true,  c:[['GB/T DC',80]]},
+  {id:12, n:"Olmazor bozori",        a:"Olmazor tumani",          op:'mustang', x:128,y:120, p:2200, free:false, c:[['GB/T DC',60]]},
+  {id:13, n:"Tashkent City park",    a:"Islom Karimov ko'chasi",  op:'spektr',  x:200,y:158, p:2600, free:true,  c:[['Type 2',22],['CCS2',120]]},
+  {id:14, n:"Mirzo Ulug'bek AZS",    a:"Mirzo Ulug'bek tumani",   op:'indie',   x:296,y:140, p:2000, free:true,  c:[['GB/T DC',40]]},
+  {id:15, n:"Beruniy metro",         a:"Beruniy ko'chasi",        op:'bset',    x:150,y:142, p:2500, free:true,  c:[['GB/T DC',120]]},
+  {id:16, n:"Qo'yliq bozori",        a:"Qo'yliq",                 op:'indie',   x:320,y:214, p:2100, free:true,  c:[['GB/T DC',60]]},
+  {id:17, n:"Shayxontohur",          a:"Navoiy ko'chasi",         op:'tokbor',  x:172,y:158, p:2400, free:false, c:[['GB/T DC',60],['Type 2',22]]},
+  {id:18, n:"Parkent bozori",        a:"Parkent ko'chasi",        op:'mustang', x:268,y:160, p:2200, free:true,  c:[['GB/T DC',60]]},
+  {id:19, n:"Yunusobod 19",          a:"Yunusobod 19-kvartal",    op:'indie',   x:258,y:64,  p:2050, free:true,  c:[['GB/T DC',40],['Type 2',11]]},
+  {id:20, n:"Do'mbrobod",            a:"Katta halqa yo'li",       op:'fast',    x:104,y:158, p:2700, free:true,  c:[['CCS2',150]]},
+  {id:21, n:"Chinoz yo'li",          a:"Chinoz shoh ko'chasi",    op:'indie',   x:146,y:262, p:2000, free:true,  c:[['GB/T DC',60]]}
+];
+
+const ME = {x:196, y:172};
+let state = { mode:'all', connector:'all', freeOnly:false, sel:null, balance:85000, timer:null };
+
+/* ---------- filtering ---------- */
+const inMode = s => state.mode === 'all' ? true : OPS[s.op].yandex;
+const inConn = s => state.connector === 'all' ? true : s.c.some(c => c[0] === state.connector);
+const visible = () => STATIONS.filter(s => inMode(s) && inConn(s) && (!state.freeOnly || s.free));
+const dist = s => Math.round(Math.hypot(s.x-ME.x, s.y-ME.y) * 0.06 * 10)/10;
+
+/* ---------- map ---------- */
+function drawMap(){
+  const m = document.getElementById('map');
+  const roads = [
+    "M20 150 H370", "M196 10 V290", "M60 40 L330 260", "M330 40 L60 260",
+    "M20 80 H370", "M20 225 H370", "M120 10 V290", "M272 10 V290"
+  ];
+  let g = `<rect width="390" height="300" fill="#0A1220"/>`;
+  g += roads.map(d=>`<path d="${d}" stroke="#17243A" stroke-width="7" fill="none" stroke-linecap="round"/>`).join('');
+  g += roads.map(d=>`<path d="${d}" stroke="#1E2E48" stroke-width="1" fill="none"/>`).join('');
+  g += `<circle cx="196" cy="150" r="86" fill="none" stroke="#17243A" stroke-width="7"/>`;
+  g += `<circle cx="196" cy="150" r="86" fill="none" stroke="#1E2E48" stroke-width="1"/>`;
+  g += `<text x="196" y="26" fill="#3C4E6E" font-size="9" text-anchor="middle" letter-spacing="2">TOSHKENT</text>`;
+
+  const vis = visible();
+  const visIds = new Set(vis.map(s=>s.id));
+
+  STATIONS.forEach(s=>{
+    const on = visIds.has(s.id);
+    const o = OPS[s.op];
+    if(!on){
+      g += `<circle cx="${s.x}" cy="${s.y}" r="3" fill="#1C2942"/>`;
+      return;
+    }
+    const fastCharger = Math.max(...s.c.map(c=>c[1])) >= 120;
+    if(fastCharger) g += `<circle cx="${s.x}" cy="${s.y}" r="11" fill="none" stroke="${o.hex}" stroke-width="1" opacity=".45"/>`;
+    g += `<circle cx="${s.x}" cy="${s.y}" r="7" fill="${o.hex}" opacity="${s.free?1:.4}"/>`;
+    if(!s.free) g += `<path d="M${s.x-3.4} ${s.y-3.4} L${s.x+3.4} ${s.y+3.4}" stroke="#0A1220" stroke-width="1.8"/>`;
+    g += `<circle cx="${s.x}" cy="${s.y}" r="13" fill="transparent" style="cursor:pointer" data-id="${s.id}"/>`;
+  });
+
+  g += `<circle cx="${ME.x}" cy="${ME.y}" r="15" fill="#FFC93C" opacity=".12"/>`;
+  g += `<circle cx="${ME.x}" cy="${ME.y}" r="5.5" fill="#FFC93C" stroke="#0A1220" stroke-width="2"/>`;
+
+  m.innerHTML = g;
+  m.querySelectorAll('[data-id]').forEach(el=>{
+    el.addEventListener('click',()=>openSheet(+el.dataset.id));
+  });
+}
+
+function drawLegend(){
+  const used = [...new Set(visible().map(s=>s.op))];
+  document.getElementById('legend').innerHTML = used.map(k=>
+    `<span class="lg"><i style="background:${OPS[k].hex}"></i>${OPS[k].name}</span>`).join('');
+}
+
+/* ---------- filters ---------- */
+const CONNS = [['all','Barchasi'],['GB/T DC','GB/T DC'],['CCS2','CCS2'],['Type 2','Type 2']];
+function drawFilters(){
+  const f = document.getElementById('filters');
+  f.innerHTML = CONNS.map(([v,l])=>
+    `<button class="chip" data-c="${v}" aria-pressed="${state.connector===v}">${l}</button>`).join('')
+    + `<button class="chip" id="freeChip" aria-pressed="${state.freeOnly}">Faqat bo'sh</button>`;
+  f.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{
+    state.connector=b.dataset.c; haptic(); render();
+  });
+  document.getElementById('freeChip').onclick=()=>{ state.freeOnly=!state.freeOnly; haptic(); render(); };
+}
+
+/* ---------- list ---------- */
+function drawList(){
+  const vis = visible().sort((a,b)=>dist(a)-dist(b));
+  const ul = document.getElementById('list');
+  document.getElementById('empty').style.display = vis.length ? 'none' : 'block';
+  document.getElementById('listNote').textContent = vis.length ? vis.length+" ta topildi" : "";
+  ul.innerHTML = vis.map(s=>{
+    const o = OPS[s.op];
+    const kw = Math.max(...s.c.map(c=>c[1]));
+    return `<li class="card" data-id="${s.id}">
+      <span class="dot" style="background:${o.hex}"></span>
+      <div class="cbody">
+        <h3>${s.n}</h3>
+        <div class="meta">
+          <span class="op">${o.name}</span>
+          <span>${dist(s)} km</span>
+          <span class="num">${kw} kW</span>
+          <span class="free ${s.free?'y':'n'}">${s.free?'BO\'SH':'BAND'}</span>
+        </div>
+      </div>
+      <div class="price"><b class="num">${s.p.toLocaleString('ru-RU')}</b><span>so'm / kWh</span></div>
+    </li>`;
+  }).join('');
+  ul.querySelectorAll('.card').forEach(el=>el.onclick=()=>openSheet(+el.dataset.id));
+}
+
+/* ---------- coverage counter ---------- */
+function drawCover(){
+  const total = STATIONS.length;
+  const nowN = STATIONS.filter(inMode).length;
+  document.getElementById('cNow').textContent = nowN;
+  document.getElementById('cTot').textContent = '/'+total;
+  document.getElementById('mAll').setAttribute('aria-pressed', state.mode==='all');
+  document.getElementById('mYa').setAttribute('aria-pressed', state.mode==='yandex');
+  const hidden = total - nowN;
+  document.getElementById('coverNote').innerHTML = state.mode==='all'
+    ? `<b>Barcha operatorlar</b> — hamkor bo'lmaganlari ham. Mustaqil egalarning stansiyalari boshqa ilovalarda ko'rinmaydi.`
+    : `Faqat hamkor tarmoqlar. <b>${hidden} ta stansiya</b> xaritadan yo'qoldi — mustaqil egalarniki, ular hech qayerda ko'rinmaydi.`;
+}
+
+function render(){ drawCover(); drawMap(); drawLegend(); drawFilters(); drawList(); }
+
+/* ---------- sheet ---------- */
+const scrim = document.getElementById('scrim');
+const sheet = document.getElementById('sheet');
+const body  = document.getElementById('sheetBody');
+function closeSheet(){
+  scrim.classList.remove('on'); sheet.classList.remove('on'); state.sel=null;
+  if(state.timer){ clearInterval(state.timer); state.timer=null; }
+}
+scrim.onclick = closeSheet;
+
+function openSheet(id){
+  const s = STATIONS.find(x=>x.id===id); if(!s) return;
+  state.sel = s; haptic('medium');
+  const o = OPS[s.op];
+  const notPartner = !o.yandex;
+  body.innerHTML = `
+    <div class="sh-title">
+      <h2>${s.n}</h2>
+      <span class="badge" style="background:${o.hex}22;color:${o.hex}">${o.name}</span>
+    </div>
+    <p class="sh-addr">${s.a} · ${dist(s)} km · ${s.free?"Bo'sh":"Hozir band"}</p>
+    ${notPartner ? `<div class="notice"><span>◆</span><span>Bu stansiya mustaqil egaga tegishli. Yandex va operator ilovalarida ko'rinmaydi — faqat shu yerda.</span></div>`:''}
+    ${s.c.map(([t,kw],i)=>`
+      <div class="conn">
+        ${connectorSvg(t,o.hex)}
+        <div class="cn"><b>${t}</b><span>${i+1}-konnektor · ${s.free?'Ulanishga tayyor':'Band'}</span></div>
+        <span class="kw">${kw} kW</span>
+      </div>`).join('')}
+    <div class="conn" style="background:transparent;border-style:dashed">
+      <div class="cn"><b class="num">${s.p.toLocaleString('ru-RU')} so'm</b><span>1 kWh narxi</span></div>
+      <span class="kw">Balans: <b class="num">${state.balance.toLocaleString('ru-RU')}</b></span>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="routeBtn">Marshrut</button>
+      <button class="btn primary" id="startBtn" ${s.free?'':'disabled'}>${s.free?'Zaryadlashni boshlash':'Hozir band'}</button>
+    </div>`;
+  document.getElementById('routeBtn').onclick = ()=>{ haptic(); alert("Haqiqiy versiyada Yandex Navigator ochiladi va marshrut quriladi."); };
+  const sb = document.getElementById('startBtn');
+  if(sb && s.free) sb.onclick = ()=>startSession(s);
+  scrim.classList.add('on'); sheet.classList.add('on');
+}
+
+function connectorSvg(type,hex){
+  if(type==='Type 2'){
+    return `<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12.5" fill="none" stroke="${hex}" stroke-width="1.4"/>
+      <circle cx="15" cy="7.5" r="2" fill="${hex}"/><circle cx="15" cy="7.5" r="2" fill="${hex}"/>
+      <circle cx="9" cy="12" r="2.2" fill="${hex}"/><circle cx="21" cy="12" r="2.2" fill="${hex}"/>
+      <circle cx="9" cy="19" r="2.2" fill="${hex}"/><circle cx="21" cy="19" r="2.2" fill="${hex}"/>
+      <circle cx="15" cy="16" r="2.6" fill="${hex}"/></svg>`;
+  }
+  if(type==='CCS2'){
+    return `<svg width="30" height="30" viewBox="0 0 30 30"><path d="M2.5 12a12.5 12.5 0 0 1 25 0v0a12.5 12.5 0 0 1-25 0z" fill="none" stroke="${hex}" stroke-width="1.4"/>
+      <circle cx="9.5" cy="8" r="2" fill="${hex}"/><circle cx="20.5" cy="8" r="2" fill="${hex}"/>
+      <circle cx="15" cy="13.5" r="2" fill="${hex}"/>
+      <circle cx="10" cy="23" r="3.4" fill="${hex}"/><circle cx="20" cy="23" r="3.4" fill="${hex}"/></svg>`;
+  }
+  return `<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12.5" fill="none" stroke="${hex}" stroke-width="1.4"/>
+    <circle cx="15" cy="6.5" r="2.1" fill="${hex}"/><circle cx="8" cy="11" r="2.1" fill="${hex}"/><circle cx="22" cy="11" r="2.1" fill="${hex}"/>
+    <circle cx="8" cy="19" r="2.1" fill="${hex}"/><circle cx="22" cy="19" r="2.1" fill="${hex}"/>
+    <circle cx="15" cy="15" r="3.2" fill="${hex}"/><circle cx="15" cy="23" r="2.1" fill="${hex}"/></svg>`;
+}
+
+/* ---------- mock charging session ---------- */
+function startSession(s){
+  haptic('heavy');
+  const kwMax = Math.max(...s.c.map(c=>c[1]));
+  let kwh = 0, secs = 0, power = 0;
+  body.innerHTML = `
+    <div class="sh-title"><h2>Zaryadlanmoqda</h2>
+      <span class="badge" style="background:${OPS[s.op].hex}22;color:${OPS[s.op].hex}">${OPS[s.op].name}</span></div>
+    <p class="sh-addr">${s.n} · ${s.c[0][0]}</p>
+    <div class="gauge">
+      <div class="big num" id="gKw">0<em>kW</em></div>
+      <div class="sub">HOZIRGI QUVVAT</div>
+      <div class="bars" id="bars">${Array.from({length:24},()=>'<i style="height:8px"></i>').join('')}</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b class="num" id="gKwh">0.0</b><span>kWh olindi</span></div>
+      <div class="stat"><b class="num" id="gSom">0</b><span>so'm</span></div>
+      <div class="stat"><b class="num" id="gTime">0:00</b><span>vaqt</span></div>
+    </div>
+    <div class="actions"><button class="btn ghost" id="stopBtn">Yakunlash</button></div>`;
+
+  const bars = [...document.getElementById('bars').children];
+  state.timer = setInterval(()=>{
+    secs++;
+    power = Math.min(kwMax, power + kwMax/6 + Math.random()*4);
+    if(secs>18) power = Math.max(kwMax*0.35, power - 3);       // taper, real zaryadlash kabi
+    kwh += power/3600*8;
+    const som = Math.round(kwh*s.p);
+    document.getElementById('gKw').innerHTML = Math.round(power)+'<em>kW</em>';
+    document.getElementById('gKwh').textContent = kwh.toFixed(1);
+    document.getElementById('gSom').textContent = som.toLocaleString('ru-RU');
+    document.getElementById('gTime').textContent = Math.floor(secs*8/60)+':'+String(Math.floor(secs*8%60)).padStart(2,'0');
+    bars.forEach((b,i)=>{
+      const h = 8 + Math.round((power/kwMax)*26*(0.55+0.45*Math.sin(i*0.8+secs*0.5)));
+      b.style.height = h+'px';
+      b.className = i < Math.round(power/kwMax*24) ? 'on' : '';
+    });
+    if(som > state.balance - 2000) finish(s,kwh,som,true);
+  },800);
+
+  document.getElementById('stopBtn').onclick = ()=>{
+    const som = Math.round(kwh*s.p); finish(s,kwh,som,false);
+  };
+}
+
+function finish(s,kwh,som,auto){
+  clearInterval(state.timer); state.timer=null; haptic('medium');
+  state.balance = Math.max(0, state.balance - som);
+  document.getElementById('balance').textContent = state.balance.toLocaleString('ru-RU');
+  body.innerHTML = `
+    <div class="sh-title"><h2>Yakunlandi</h2></div>
+    <p class="sh-addr">${s.n} · ${OPS[s.op].name}</p>
+    ${auto?`<div class="notice"><span>◆</span><span>Balans tugashiga yaqin qoldi, shuning uchun sessiya avtomatik to'xtatildi.</span></div>`:''}
+    <div class="stats">
+      <div class="stat"><b class="num">${kwh.toFixed(1)}</b><span>kWh</span></div>
+      <div class="stat"><b class="num">${som.toLocaleString('ru-RU')}</b><span>so'm yechildi</span></div>
+      <div class="stat"><b class="num">${state.balance.toLocaleString('ru-RU')}</b><span>qoldi</span></div>
+    </div>
+    <div class="actions"><button class="btn primary" id="okBtn">Yopish</button></div>`;
+  document.getElementById('okBtn').onclick = closeSheet;
+}
+
+/* ---------- wallet ---------- */
+document.getElementById('walletBtn').onclick = ()=>{
+  haptic();
+  body.innerHTML = `
+    <div class="sh-title"><h2>Hamyon</h2></div>
+    <p class="sh-addr">Bitta balans — barcha operatorlarda ishlaydi</p>
+    <div class="stats" style="margin-top:0">
+      <div class="stat" style="flex:2"><b class="num">${state.balance.toLocaleString('ru-RU')}</b><span>so'm balans</span></div>
+    </div>
+    <div class="notice" style="margin-top:14px"><span>◆</span><span>Prototipda to'ldirish simulyatsiya qilinadi. Haqiqiy versiyada Click, Payme yoki Uzum orqali ulanadi.</span></div>
+    <div class="actions">
+      <button class="btn ghost" id="top50">+50 000</button>
+      <button class="btn primary" id="top100">+100 000</button>
+    </div>`;
+  const top = v => { state.balance += v; document.getElementById('balance').textContent = state.balance.toLocaleString('ru-RU'); haptic('medium'); closeSheet(); };
+  document.getElementById('top50').onclick = ()=>top(50000);
+  document.getElementById('top100').onclick = ()=>top(100000);
+  scrim.classList.add('on'); sheet.classList.add('on');
+};
+
+document.getElementById('mAll').onclick = ()=>{ state.mode='all'; haptic(); render(); };
+document.getElementById('mYa').onclick  = ()=>{ state.mode='yandex'; haptic(); render(); };
+
+render();
+</script>
