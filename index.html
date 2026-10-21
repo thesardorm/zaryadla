@@ -198,7 +198,8 @@ ul.stations{list-style:none;margin:0;padding:0 16px 30px;display:flex;flex-direc
 <div class="empty" id="empty" style="display:none">Bu filtrga mos stansiya yo'q.<br>Konnektor turini o'zgartiring yoki "Faqat bo'sh"ni o'chiring.</div>
 
 <p class="foot">
-  <b>Bu ishlaydigan prototip, tayyor mahsulot emas.</b> Xarita sxematik, stansiya ma'lumotlari namuna uchun kiritilgan, to'lov simulyatsiya qilinadi.
+  <b>Bu ishlaydigan prototip, tayyor mahsulot emas.</b> Xarita sxematik, 21 ta stansiya namuna uchun kiritilgan va ularning koordinatasi tuman darajasida taxminiy — aniq manzil emas.
+  Marshrut tugmasi haqiqiy xarita ilovalarini ochadi, lekin namuna stansiyalarga borib bo'lmaydi.
   Haqiqiy versiyada xarita Yandex Maps yoki 2GIS SDK orqali, stansiya holati operator API/OCPI orqali, to'lov esa Click/Payme orqali ulanadi.
 </p>
 
@@ -223,6 +224,17 @@ ul.stations{list-style:none;margin:0;padding:0 16px 30px;display:flex;flex-direc
   </div>
   <div class="field"><label>Quvvat (kW)</label><input id="aKw" inputmode="numeric" placeholder="60"></div>
   <div class="field"><label>Narx (so'm / kWh)</label><input id="aPrice" inputmode="numeric" placeholder="2500"></div>
+
+  <div class="field">
+    <label>Koordinata — stansiya yonida turib tugmani bos</label>
+    <div class="segrow" style="margin-bottom:8px">
+      <input id="aLa" inputmode="decimal" placeholder="41.31100" style="flex:1">
+      <input id="aLo" inputmode="decimal" placeholder="69.25000" style="flex:1">
+    </div>
+    <button class="btn ghost" id="aGeo" style="width:100%;padding:13px">Hozirgi joylashuvni olish</button>
+    <div class="err" id="aGeoMsg"></div>
+  </div>
+
   <div class="err" id="aErr"></div>
   <div class="admbar">
     <button class="btn primary" id="aAdd" style="flex:1">Qo'shish</button>
@@ -282,30 +294,41 @@ const OPS = {
   indie:   {name:'Mustaqil',color:'var(--op-indie)',   hex:'#94A3B8', yandex:false}
 };
 
-// Sxematik koordinatalar (0-390 / 0-300), Toshkent joylashuviga taxminan mos
+// NAMUNA MA'LUMOT. x,y = sxematik xaritadagi joy. la,lo = koordinata (taxminiy, tuman darajasida).
+// Haqiqiy stansiyalarni admin panel orqali aniq GPS koordinatasi bilan qo'shasan.
 const STATIONS = [
-  {id:1,  n:"Köfteci Ismail",        a:"Qorataш ko'chasi",        op:'bset',    x:196,y:150, p:2500, free:true,  c:[['GB/T DC',120],['GB/T DC',120]]},
-  {id:2,  n:"Compass Mall",          a:"Bunyodkor shoh ko'chasi", op:'tokbor',  x:150,y:196, p:2400, free:true,  c:[['GB/T DC',60],['Type 2',22]]},
-  {id:3,  n:"Chorsu avtoturargoh",   a:"Chorsu",                  op:'tokbor',  x:178,y:132, p:2400, free:false, c:[['GB/T DC',80]]},
-  {id:4,  n:"Next Mall",             a:"Amir Temur shoh ko'chasi",op:'fast',    x:236,y:128, p:2700, free:true,  c:[['CCS2',150],['GB/T DC',120]]},
-  {id:5,  n:"Riviera Hotel",         a:"Yunusobod 4-kvartal",     op:'spektr',  x:242,y:88,  p:2600, free:true,  c:[['Type 2',22]]},
-  {id:6,  n:"Oybek metro",           a:"Oybek ko'chasi",          op:'bset',    x:214,y:170, p:2500, free:false, c:[['GB/T DC',60]]},
-  {id:7,  n:"Sergeli avtobozor",     a:"Sergeli 7-mavze",         op:'mustang', x:184,y:250, p:2200, free:true,  c:[['GB/T DC',60],['GB/T DC',60]]},
-  {id:8,  n:"Aviasozlar bekati",     a:"Ko'katas ko'chasi",       op:'indie',   x:120,y:216, p:2100, free:true,  c:[['GB/T DC',40]]},
-  {id:9,  n:"Yashnobod servis",      a:"Yashnobod tumani",        op:'indie',   x:288,y:190, p:2150, free:true,  c:[['GB/T DC',60],['Type 2',11]]},
-  {id:10, n:"Magic City",            a:"Bobur ko'chasi",          op:'fast',    x:222,y:186, p:2700, free:true,  c:[['CCS2',180]]},
-  {id:11, n:"Chilonzor 19",          a:"Chilonzor 19-kvartal",    op:'tokbor',  x:140,y:180, p:2400, free:true,  c:[['GB/T DC',80]]},
-  {id:12, n:"Olmazor bozori",        a:"Olmazor tumani",          op:'mustang', x:128,y:120, p:2200, free:false, c:[['GB/T DC',60]]},
-  {id:13, n:"Tashkent City park",    a:"Islom Karimov ko'chasi",  op:'spektr',  x:200,y:158, p:2600, free:true,  c:[['Type 2',22],['CCS2',120]]},
-  {id:14, n:"Mirzo Ulug'bek AZS",    a:"Mirzo Ulug'bek tumani",   op:'indie',   x:296,y:140, p:2000, free:true,  c:[['GB/T DC',40]]},
-  {id:15, n:"Beruniy metro",         a:"Beruniy ko'chasi",        op:'bset',    x:150,y:142, p:2500, free:true,  c:[['GB/T DC',120]]},
-  {id:16, n:"Qo'yliq bozori",        a:"Qo'yliq",                 op:'indie',   x:320,y:214, p:2100, free:true,  c:[['GB/T DC',60]]},
-  {id:17, n:"Shayxontohur",          a:"Navoiy ko'chasi",         op:'tokbor',  x:172,y:158, p:2400, free:false, c:[['GB/T DC',60],['Type 2',22]]},
-  {id:18, n:"Parkent bozori",        a:"Parkent ko'chasi",        op:'mustang', x:268,y:160, p:2200, free:true,  c:[['GB/T DC',60]]},
-  {id:19, n:"Yunusobod 19",          a:"Yunusobod 19-kvartal",    op:'indie',   x:258,y:64,  p:2050, free:true,  c:[['GB/T DC',40],['Type 2',11]]},
-  {id:20, n:"Do'mbrobod",            a:"Katta halqa yo'li",       op:'fast',    x:104,y:158, p:2700, free:true,  c:[['CCS2',150]]},
-  {id:21, n:"Chinoz yo'li",          a:"Chinoz shoh ko'chasi",    op:'indie',   x:146,y:262, p:2000, free:true,  c:[['GB/T DC',60]]}
+  {id:1,  n:"Köfteci Ismail",        a:"Qorataş ko'chasi",        op:'bset',    x:196,y:150, la:41.3220, lo:69.2250, p:2500, free:true,  c:[['GB/T DC',120],['GB/T DC',120]]},
+  {id:2,  n:"Compass Mall",          a:"Bunyodkor shoh ko'chasi", op:'tokbor',  x:150,y:196, la:41.2730, lo:69.2030, p:2400, free:true,  c:[['GB/T DC',60],['Type 2',22]]},
+  {id:3,  n:"Chorsu avtoturargoh",   a:"Chorsu",                  op:'tokbor',  x:178,y:132, la:41.3260, lo:69.2340, p:2400, free:false, c:[['GB/T DC',80]]},
+  {id:4,  n:"Next Mall",             a:"Amir Temur shoh ko'chasi",op:'fast',    x:236,y:128, la:41.3330, lo:69.2890, p:2700, free:true,  c:[['CCS2',150],['GB/T DC',120]]},
+  {id:5,  n:"Riviera Hotel",         a:"Yunusobod 4-kvartal",     op:'spektr',  x:242,y:88,  la:41.3660, lo:69.2860, p:2600, free:true,  c:[['Type 2',22]]},
+  {id:6,  n:"Oybek metro",           a:"Oybek ko'chasi",          op:'bset',    x:214,y:170, la:41.2960, lo:69.2730, p:2500, free:false, c:[['GB/T DC',60]]},
+  {id:7,  n:"Sergeli avtobozor",     a:"Sergeli 7-mavze",         op:'mustang', x:184,y:250, la:41.2300, lo:69.2180, p:2200, free:true,  c:[['GB/T DC',60],['GB/T DC',60]]},
+  {id:8,  n:"Aviasozlar bekati",     a:"Ko'katas ko'chasi",       op:'indie',   x:120,y:216, la:41.2660, lo:69.1870, p:2100, free:true,  c:[['GB/T DC',40]]},
+  {id:9,  n:"Yashnobod servis",      a:"Yashnobod tumani",        op:'indie',   x:288,y:190, la:41.2880, lo:69.3330, p:2150, free:true,  c:[['GB/T DC',60],['Type 2',11]]},
+  {id:10, n:"Magic City",            a:"Bobur ko'chasi",          op:'fast',    x:222,y:186, la:41.2860, lo:69.2450, p:2700, free:true,  c:[['CCS2',180]]},
+  {id:11, n:"Chilonzor 19",          a:"Chilonzor 19-kvartal",    op:'tokbor',  x:140,y:180, la:41.2750, lo:69.2000, p:2400, free:true,  c:[['GB/T DC',80]]},
+  {id:12, n:"Olmazor bozori",        a:"Olmazor tumani",          op:'mustang', x:128,y:120, la:41.3480, lo:69.2070, p:2200, free:false, c:[['GB/T DC',60]]},
+  {id:13, n:"Tashkent City park",    a:"Islom Karimov ko'chasi",  op:'spektr',  x:200,y:158, la:41.3110, lo:69.2500, p:2600, free:true,  c:[['Type 2',22],['CCS2',120]]},
+  {id:14, n:"Mirzo Ulug'bek AZS",    a:"Mirzo Ulug'bek tumani",   op:'indie',   x:296,y:140, la:41.3300, lo:69.3400, p:2000, free:true,  c:[['GB/T DC',40]]},
+  {id:15, n:"Beruniy metro",         a:"Beruniy ko'chasi",        op:'bset',    x:150,y:142, la:41.3400, lo:69.2030, p:2500, free:true,  c:[['GB/T DC',120]]},
+  {id:16, n:"Qo'yliq bozori",        a:"Qo'yliq",                 op:'indie',   x:320,y:214, la:41.2700, lo:69.3600, p:2100, free:true,  c:[['GB/T DC',60]]},
+  {id:17, n:"Shayxontohur",          a:"Navoiy ko'chasi",         op:'tokbor',  x:172,y:158, la:41.3180, lo:69.2390, p:2400, free:false, c:[['GB/T DC',60],['Type 2',22]]},
+  {id:18, n:"Parkent bozori",        a:"Parkent ko'chasi",        op:'mustang', x:268,y:160, la:41.3180, lo:69.3100, p:2200, free:true,  c:[['GB/T DC',60]]},
+  {id:19, n:"Yunusobod 19",          a:"Yunusobod 19-kvartal",    op:'indie',   x:258,y:64,  la:41.3770, lo:69.2930, p:2050, free:true,  c:[['GB/T DC',40],['Type 2',11]]},
+  {id:20, n:"Do'mbrobod",            a:"Katta halqa yo'li",       op:'fast',    x:104,y:158, la:41.3000, lo:69.1700, p:2700, free:true,  c:[['CCS2',150]]},
+  {id:21, n:"Chinoz yo'li",          a:"Chinoz shoh ko'chasi",    op:'indie',   x:146,y:262, la:41.2250, lo:69.1800, p:2000, free:true,  c:[['GB/T DC',60]]}
 ];
+
+/* koordinatani sxematik xaritaga joylashtirish */
+const BB = { laMax:41.40, laMin:41.20, loMin:69.14, loMax:69.40 };
+function proj(la, lo){
+  const x = Math.round(((lo - BB.loMin) / (BB.loMax - BB.loMin)) * 390);
+  const y = Math.round(((BB.laMax - la) / (BB.laMax - BB.laMin)) * 300);
+  return { x: Math.min(380, Math.max(10, x)), y: Math.min(290, Math.max(10, y)) };
+}
+// xarita geografik jihatdan izchil bo'lishi uchun hamma nuqtani koordinatadan hisoblaymiz
+STATIONS.forEach(s=>{ if(s.la && s.lo){ const q = proj(s.la, s.lo); s.x = q.x; s.y = q.y; } });
 
 /* ---------- saqlash (faqat shu brauzerda) ---------- */
 const LS = {
@@ -462,10 +485,60 @@ function openSheet(id){
       <button class="btn ghost" id="routeBtn">Marshrut</button>
       <button class="btn primary" id="startBtn" ${s.free?'':'disabled'}>${s.free?'Zaryadlashni boshlash':'Hozir band'}</button>
     </div>`;
-  document.getElementById('routeBtn').onclick = ()=>{ haptic(); alert("Haqiqiy versiyada Yandex Navigator ochiladi va marshrut quriladi."); };
+  document.getElementById('routeBtn').onclick = ()=>{ haptic(); openRoute(s); };
   const sb = document.getElementById('startBtn');
   if(sb && s.free) sb.onclick = ()=>startSession(s);
   scrim.classList.add('on'); sheet.classList.add('on');
+}
+
+/* ---------- marshrut: qaysi xaritada ochish ---------- */
+const MAP_APPS = [
+  { key:'navi',  name:'Yandex Navigator', hint:'Ovozli navigatsiya',  url:(la,lo)=>`yandexnavi://build_route_on_map?lat_to=${la}&lon_to=${lo}` },
+  { key:'ymaps', name:'Yandex Xaritalar', hint:'Brauzerda ham ochiladi', url:(la,lo)=>`https://yandex.uz/maps/?rtext=~${la},${lo}&rtt=auto` },
+  { key:'gmaps', name:'Google Maps',      hint:'Viloyatlarda qulay',   url:(la,lo)=>`https://www.google.com/maps/dir/?api=1&destination=${la},${lo}&travelmode=driving` },
+  { key:'2gis',  name:'2GIS',             hint:'Aniq manzillar',       url:(la,lo)=>`https://2gis.uz/tashkent/directions/points/%7C${lo}%2C${la}` }
+];
+
+function openRoute(s){
+  if(!s.la || !s.lo){
+    body.innerHTML = `
+      <div class="sh-title"><h2>Koordinata yo'q</h2></div>
+      <p class="sh-addr">${s.n}</p>
+      <div class="notice"><span>◆</span><span>Bu stansiyaga koordinata kiritilmagan. Admin panelda uni qo'shsangiz, marshrut ishlaydi.</span></div>
+      <div class="actions"><button class="btn ghost" id="rBack">Orqaga</button></div>`;
+    document.getElementById('rBack').onclick = ()=>openSheet(s.id);
+    return;
+  }
+  body.innerHTML = `
+    <div class="sh-title"><h2>Qaysi xaritada ochamiz?</h2></div>
+    <p class="sh-addr">${s.n} · ${s.a}</p>
+    ${MAP_APPS.map(m=>`
+      <div class="conn" style="cursor:pointer" data-app="${m.key}">
+        <div class="cn"><b>${m.name}</b><span>${m.hint}</span></div>
+        <span class="kw">→</span>
+      </div>`).join('')}
+    <div class="conn" style="background:transparent;border-style:dashed">
+      <div class="cn"><b class="num" style="font-size:13px">${s.la.toFixed(5)}, ${s.lo.toFixed(5)}</b><span>koordinata</span></div>
+      <button class="btn ghost" id="rCopy" style="flex:0 0 auto;padding:9px 13px;font-size:12px">Nusxa</button>
+    </div>
+    <div class="actions"><button class="btn ghost" id="rBack">Orqaga</button></div>`;
+
+  body.querySelectorAll('[data-app]').forEach(el=>{
+    el.onclick = ()=>{
+      const m = MAP_APPS.find(a=>a.key===el.dataset.app);
+      const url = m.url(s.la, s.lo);
+      haptic('medium');
+      try {
+        if(tg && tg.openLink && url.startsWith('http')) tg.openLink(url);
+        else window.open(url, '_blank');
+      } catch(e){ window.location.href = url; }
+    };
+  });
+  document.getElementById('rCopy').onclick = async ()=>{
+    try { await navigator.clipboard.writeText(`${s.la}, ${s.lo}`); document.getElementById('rCopy').textContent = 'OK'; }
+    catch(e){ document.getElementById('rCopy').textContent = '—'; }
+  };
+  document.getElementById('rBack').onclick = ()=>openSheet(s.id);
 }
 
 function connectorSvg(type,hex){
@@ -672,7 +745,7 @@ function renderAdmin(){
   list.innerHTML = CUSTOM.length ? CUSTOM.map(s=>`
     <div class="arow">
       <span class="dot" style="background:${OPS[s.op].hex}"></span>
-      <div class="ab"><b>${s.n}</b><span>${OPS[s.op].name} · ${s.c[0][1]} kW · ${s.p.toLocaleString('ru-RU')} so'm</span></div>
+      <div class="ab"><b>${s.n}</b><span>${OPS[s.op].name} · ${s.c[0][1]} kW · ${s.p.toLocaleString('ru-RU')} so'm · ${s.la ? 'koordinata bor' : 'koordinata YO\'Q'}</span></div>
       <button class="del" data-del="${s.id}">O'chirish</button>
     </div>`).join('')
     : `<p class="lede">Hali qo'shilmagan.</p>`;
@@ -683,7 +756,7 @@ function renderAdmin(){
     };
   });
   document.getElementById('aExport').value = CUSTOM.length
-    ? CUSTOM.map(s=>`  {id:${s.id}, n:${JSON.stringify(s.n)}, a:${JSON.stringify(s.a)}, op:'${s.op}', x:${s.x}, y:${s.y}, p:${s.p}, free:true, c:[[${JSON.stringify(s.c[0][0])},${s.c[0][1]}]]},`).join('\n')
+    ? CUSTOM.map(s=>`  {id:${s.id}, n:${JSON.stringify(s.n)}, a:${JSON.stringify(s.a)}, op:'${s.op}', x:${s.x}, y:${s.y}, ${s.la?`la:${s.la}, lo:${s.lo}, `:''}p:${s.p}, free:true, c:[[${JSON.stringify(s.c[0][0])},${s.c[0][1]}]]},`).join('\n')
     : '';
 }
 
@@ -698,13 +771,39 @@ document.getElementById('aAdd').onclick = ()=>{
   if(n.length < 2){ err.textContent = 'Stansiya nomini kiriting.'; return; }
   if(!kw || kw <= 0){ err.textContent = 'Quvvatni raqam bilan kiriting.'; return; }
   if(!p || p <= 0){ err.textContent = 'Narxni raqam bilan kiriting.'; return; }
+  const la = parseFloat(document.getElementById('aLa').value);
+  const lo = parseFloat(document.getElementById('aLo').value);
+  const hasLL = !isNaN(la) && !isNaN(lo);
+  if((document.getElementById('aLa').value || document.getElementById('aLo').value) && !hasLL){
+    err.textContent = 'Koordinatani to\'liq kiriting yoki ikkalasini bo\'sh qoldiring.'; return;
+  }
   err.textContent = '';
-  const pos = spreadPos(CUSTOM.length);
-  CUSTOM.push({ id: nextId(), n, a: a || '—', op, x: pos.x, y: pos.y, p, free: true, c: [[ct, kw]] });
+  const pos = hasLL ? proj(la, lo) : spreadPos(CUSTOM.length);
+  const rec = { id: nextId(), n, a: a || '—', op, x: pos.x, y: pos.y, p, free: true, c: [[ct, kw]] };
+  if(hasLL){ rec.la = la; rec.lo = lo; }
+  CUSTOM.push(rec);
   if(!LS.set('vz_stations', CUSTOM)) err.textContent = 'Saqlanmadi — brauzer xotirasi yopiq.';
   refreshAll();
-  ['aName','aAddr','aKw','aPrice'].forEach(id=>document.getElementById(id).value='');
+  ['aName','aAddr','aKw','aPrice','aLa','aLo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('aGeoMsg').textContent = '';
   renderAdmin(); haptic('medium');
+};
+
+/* GPS orqali koordinata olish — dala ishi uchun */
+document.getElementById('aGeo').onclick = ()=>{
+  const msg = document.getElementById('aGeoMsg');
+  if(!navigator.geolocation){ msg.textContent = 'Bu brauzer joylashuvni bermaydi.'; return; }
+  msg.textContent = 'Aniqlanmoqda…';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      document.getElementById('aLa').value = pos.coords.latitude.toFixed(5);
+      document.getElementById('aLo').value = pos.coords.longitude.toFixed(5);
+      msg.textContent = 'Olindi · aniqlik ±' + Math.round(pos.coords.accuracy) + ' m';
+      haptic('medium');
+    },
+    e => { msg.textContent = 'Olinmadi: ' + (e.code === 1 ? 'ruxsat berilmadi' : 'signal yo\'q'); },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+  );
 };
 
 document.getElementById('aCopy').onclick = async ()=>{
