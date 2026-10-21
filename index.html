@@ -653,7 +653,7 @@ function setAdmin(on){
     if(el) el.style.display = on ? 'none' : '';
   });
   adminView.classList.toggle('on', on);
-  if(on){ renderAdmin(); hideOnb(); }
+  if(on){ closeSheet(); renderAdmin(); hideOnb(); }
   else { render(); }
 }
 
