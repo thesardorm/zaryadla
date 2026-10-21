@@ -467,7 +467,7 @@ function drawList(){
         <h3>${s.n}${nearest}</h3>
         <div class="meta">
           <span class="op">${o.name}</span>
-          <span>${dist(s)} km</span>
+          ${ME.real ? `<span>${dist(s)} km</span>` : ''}
           <span class="num">${kw} kW</span>
           <span class="free ${s.free?'y':'n'}">${s.free?'BO\'SH':'BAND'}</span>
         </div>
@@ -514,7 +514,7 @@ function openSheet(id){
       <h2>${s.n}</h2>
       <span class="badge" style="background:${o.hex}22;color:${o.hex}">${o.name}</span>
     </div>
-    <p class="sh-addr">${s.a} · ${dist(s)} km · ${s.free?"Bo'sh":"Hozir band"}</p>
+    <p class="sh-addr">${s.a}${ME.real ? ' · ' + dist(s) + ' km' : ''} · ${s.free?"Bo'sh":"Hozir band"}</p>
     ${notPartner ? `<div class="notice"><span>◆</span><span>Bu stansiya mustaqil egaga tegishli. Yandex va operator ilovalarida ko'rinmaydi — faqat shu yerda.</span></div>`:''}
     ${s.c.map(([t,kw],i)=>`
       <div class="conn">
