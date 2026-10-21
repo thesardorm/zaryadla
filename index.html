@@ -122,6 +122,40 @@ ul.stations{list-style:none;margin:0;padding:0 16px 30px;display:flex;flex-direc
 .stat span{font-size:10.5px;color:var(--mist)}
 .foot{margin:22px 16px 34px;font-size:11px;color:var(--mist);line-height:1.55;border-top:1px solid var(--edge);padding-top:14px}
 .foot b{color:var(--snow)}
+
+/* ---------- onboarding ---------- */
+.onb{position:fixed;inset:0;z-index:70;background:var(--ink);display:none;flex-direction:column;padding:28px 20px;max-width:460px;margin:0 auto;overflow-y:auto}
+.onb.on{display:flex}
+.onb .mark{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.03em;margin-bottom:26px}
+.onb .mark i{width:10px;height:10px;border-radius:50%;background:var(--live);box-shadow:0 0 0 5px rgba(255,201,60,.16);font-style:normal}
+.onb h1{margin:0 0 6px;font-family:var(--display);font-size:25px;font-weight:700;letter-spacing:-.03em;line-height:1.15}
+.onb .lede{margin:0 0 22px;font-size:13px;color:var(--mist);line-height:1.5}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11.5px;color:var(--mist);margin-bottom:6px;letter-spacing:.03em}
+.field input,.field select{width:100%;background:var(--slate);border:1px solid var(--edge);border-radius:13px;padding:14px 13px;color:var(--snow);font-size:15px;font-family:var(--body);outline:none}
+.field input:focus,.field select:focus{border-color:var(--live)}
+.field input::placeholder{color:#55657F}
+.segrow{display:flex;gap:7px}
+.segrow button{flex:1;background:var(--slate);border:1px solid var(--edge);color:var(--mist);border-radius:13px;padding:13px 8px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:var(--body);transition:.16s}
+.segrow button[aria-pressed="true"]{background:var(--live);color:#20180A;border-color:var(--live)}
+.onb .err{font-size:11.5px;color:var(--danger);min-height:16px;margin-top:2px}
+.onb .spacer{flex:1;min-height:14px}
+.onb .legal{font-size:10.5px;color:var(--mist);line-height:1.5;margin:0 0 12px}
+.linkbtn{background:none;border:0;color:var(--mist);font-size:12.5px;text-decoration:underline;cursor:pointer;padding:12px;width:100%;font-family:var(--body)}
+
+/* ---------- admin ---------- */
+.adm{display:none;padding:0 16px 40px}
+.adm.on{display:block}
+.adm h2{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.02em;margin:4px 0 2px}
+.adm .lede{font-size:12px;color:var(--mist);margin:0 0 16px;line-height:1.5}
+.admbar{display:flex;gap:8px;margin-bottom:14px}
+.arow{display:flex;align-items:center;gap:10px;background:var(--slate);border:1px solid var(--edge);border-radius:13px;padding:11px 12px;margin-bottom:7px}
+.arow .ab{flex:1;min-width:0}
+.arow .ab b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arow .ab span{font-size:11px;color:var(--mist)}
+.arow .del{background:rgba(255,107,107,.12);border:0;color:var(--danger);border-radius:9px;padding:8px 11px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:var(--body)}
+.tagline{font-size:10px;font-weight:700;letter-spacing:.05em;color:var(--live);background:rgba(255,201,60,.12);border-radius:5px;padding:2px 6px}
+.export{width:100%;background:var(--slate2);border:1px solid var(--edge);color:var(--mist);border-radius:12px;padding:12px;font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical;min-height:110px;margin-top:10px}
 </style>
 
 <header>
@@ -168,6 +202,69 @@ ul.stations{list-style:none;margin:0;padding:0 16px 30px;display:flex;flex-direc
   Haqiqiy versiyada xarita Yandex Maps yoki 2GIS SDK orqali, stansiya holati operator API/OCPI orqali, to'lov esa Click/Payme orqali ulanadi.
 </p>
 
+<section class="adm" id="adminView">
+  <h2>Admin panel</h2>
+  <p class="lede">Stansiya qo'shish va o'chirish. Ma'lumot shu brauzerda saqlanadi — pastdagi kodni nusxalab <b>index.html</b> ichiga joylasang, hammaga ko'rinadi.</p>
+
+  <div class="field"><label>Stansiya nomi</label><input id="aName" placeholder="Masalan: Chorsu avtoturargoh"></div>
+  <div class="field"><label>Manzil</label><input id="aAddr" placeholder="Ko'cha, orientir"></div>
+  <div class="field"><label>Operator</label>
+    <select id="aOp">
+      <option value="indie">Mustaqil</option>
+      <option value="tokbor">Tokbor</option>
+      <option value="spektr">Spektr</option>
+      <option value="bset">Bset</option>
+      <option value="fast">Fast</option>
+      <option value="mustang">Mustang</option>
+    </select>
+  </div>
+  <div class="field"><label>Konnektor turi</label>
+    <select id="aConn"><option>GB/T DC</option><option>CCS2</option><option>Type 2</option></select>
+  </div>
+  <div class="field"><label>Quvvat (kW)</label><input id="aKw" inputmode="numeric" placeholder="60"></div>
+  <div class="field"><label>Narx (so'm / kWh)</label><input id="aPrice" inputmode="numeric" placeholder="2500"></div>
+  <div class="err" id="aErr"></div>
+  <div class="admbar">
+    <button class="btn primary" id="aAdd" style="flex:1">Qo'shish</button>
+  </div>
+
+  <h2 style="margin-top:22px">Qo'shilganlar (<span id="aCount">0</span>)</h2>
+  <p class="lede">Faqat shu brauzerda saqlangan stansiyalar.</p>
+  <div id="aList"></div>
+
+  <h2 style="margin-top:22px">Kodga ko'chirish</h2>
+  <p class="lede">Shuni nusxalab, <b>index.html</b> faylidagi STATIONS ro'yxatining oxiriga qo'shasan.</p>
+  <textarea class="export" id="aExport" readonly></textarea>
+  <div class="admbar" style="margin-top:10px">
+    <button class="btn ghost" id="aCopy" style="flex:1">Nusxalash</button>
+    <button class="btn ghost" id="aExit" style="flex:1">Chiqish</button>
+  </div>
+</section>
+
+<div class="onb" id="onb">
+  <div class="mark"><i></i>Voltly UZ</div>
+  <h1>Tanishib olaylik</h1>
+  <p class="lede">Bir marta to'ldirasiz. Keyin zaryadlash tarixi va balans shu hisobga bog'lanadi.</p>
+
+  <div class="field"><label>Ismingiz</label><input id="oName" placeholder="Sardor" autocomplete="given-name"></div>
+  <div class="field"><label>Telefon raqam</label><input id="oPhone" inputmode="tel" placeholder="+998 __ ___ __ __" autocomplete="tel"></div>
+  <div class="field"><label>Tug'ilgan kun <span style="opacity:.6">— ixtiyoriy</span></label><input id="oBirth" type="date"></div>
+  <div class="field">
+    <label>Jinsi <span style="opacity:.6">— ixtiyoriy</span></label>
+    <div class="segrow" id="oGender">
+      <button data-g="erkak" aria-pressed="false">Erkak</button>
+      <button data-g="ayol" aria-pressed="false">Ayol</button>
+      <button data-g="-" aria-pressed="false">Aytmayman</button>
+    </div>
+  </div>
+  <div class="err" id="oErr"></div>
+
+  <div class="spacer"></div>
+  <p class="legal">Prototip: ma'lumot faqat shu telefonda saqlanadi, hech qayerga yuborilmaydi.</p>
+  <button class="btn primary" id="oSave">Davom etish</button>
+  <button class="linkbtn" id="oSkip">Hozircha o'tkazib yuborish</button>
+</div>
+
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
 
@@ -210,13 +307,22 @@ const STATIONS = [
   {id:21, n:"Chinoz yo'li",          a:"Chinoz shoh ko'chasi",    op:'indie',   x:146,y:262, p:2000, free:true,  c:[['GB/T DC',60]]}
 ];
 
+/* ---------- saqlash (faqat shu brauzerda) ---------- */
+const LS = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e){ return false; } }
+};
+let CUSTOM = LS.get('vz_stations', []);
+let ALL = STATIONS.concat(CUSTOM);
+const refreshAll = () => { ALL = STATIONS.concat(CUSTOM); };
+
 const ME = {x:196, y:172};
 let state = { mode:'all', connector:'all', freeOnly:false, sel:null, balance:85000, timer:null };
 
 /* ---------- filtering ---------- */
 const inMode = s => state.mode === 'all' ? true : OPS[s.op].yandex;
 const inConn = s => state.connector === 'all' ? true : s.c.some(c => c[0] === state.connector);
-const visible = () => STATIONS.filter(s => inMode(s) && inConn(s) && (!state.freeOnly || s.free));
+const visible = () => ALL.filter(s => inMode(s) && inConn(s) && (!state.freeOnly || s.free));
 const dist = s => Math.round(Math.hypot(s.x-ME.x, s.y-ME.y) * 0.06 * 10)/10;
 
 /* ---------- map ---------- */
@@ -236,7 +342,7 @@ function drawMap(){
   const vis = visible();
   const visIds = new Set(vis.map(s=>s.id));
 
-  STATIONS.forEach(s=>{
+  ALL.forEach(s=>{
     const on = visIds.has(s.id);
     const o = OPS[s.op];
     if(!on){
@@ -306,8 +412,8 @@ function drawList(){
 
 /* ---------- coverage counter ---------- */
 function drawCover(){
-  const total = STATIONS.length;
-  const nowN = STATIONS.filter(inMode).length;
+  const total = ALL.length;
+  const nowN = ALL.filter(inMode).length;
   document.getElementById('cNow').textContent = nowN;
   document.getElementById('cTot').textContent = '/'+total;
   document.getElementById('mAll').setAttribute('aria-pressed', state.mode==='all');
@@ -331,7 +437,7 @@ function closeSheet(){
 scrim.onclick = closeSheet;
 
 function openSheet(id){
-  const s = STATIONS.find(x=>x.id===id); if(!s) return;
+  const s = ALL.find(x=>x.id===id); if(!s) return;
   state.sel = s; haptic('medium');
   const o = OPS[s.op];
   const notPartner = !o.yandex;
@@ -467,5 +573,155 @@ document.getElementById('walletBtn').onclick = ()=>{
 document.getElementById('mAll').onclick = ()=>{ state.mode='all'; haptic(); render(); };
 document.getElementById('mYa').onclick  = ()=>{ state.mode='yandex'; haptic(); render(); };
 
+/* ================= PROFIL / RO'YXATDAN O'TISH ================= */
+let PROFILE = LS.get('vz_profile', null);
+const onb = document.getElementById('onb');
+let pickedGender = '';
+
+document.querySelectorAll('#oGender button').forEach(btn=>{
+  btn.onclick = ()=>{
+    pickedGender = btn.dataset.g;
+    document.querySelectorAll('#oGender button').forEach(x=>x.setAttribute('aria-pressed', x===btn));
+    haptic();
+  };
+});
+
+function showOnb(){ onb.classList.add('on'); }
+function hideOnb(){ onb.classList.remove('on'); }
+
+document.getElementById('oSave').onclick = ()=>{
+  const name  = document.getElementById('oName').value.trim();
+  const phone = document.getElementById('oPhone').value.trim();
+  const birth = document.getElementById('oBirth').value;
+  const err   = document.getElementById('oErr');
+  if(name.length < 2){ err.textContent = 'Ismingizni kiriting.'; return; }
+  if(phone.replace(/\D/g,'').length < 9){ err.textContent = 'Telefon raqamni to\'liq kiriting.'; return; }
+  err.textContent = '';
+  PROFILE = { name, phone, birth: birth || '', gender: pickedGender || '' };
+  LS.set('vz_profile', PROFILE);
+  haptic('medium');
+  hideOnb();
+};
+
+document.getElementById('oSkip').onclick = ()=>{
+  LS.set('vz_profile', { skipped:true });
+  PROFILE = { skipped:true };
+  hideOnb();
+};
+
+/* hamyon + profil birga */
+document.getElementById('walletBtn').onclick = ()=>{
+  haptic();
+  const named = PROFILE && PROFILE.name;
+  body.innerHTML = `
+    <div class="sh-title"><h2>Hisobim</h2></div>
+    <p class="sh-addr">${named ? PROFILE.name + ' · ' + PROFILE.phone : 'Hisob to\'ldirilmagan'}</p>
+    <div class="stats" style="margin-top:0">
+      <div class="stat" style="flex:2"><b class="num">${state.balance.toLocaleString('ru-RU')}</b><span>so'm balans</span></div>
+      ${named && PROFILE.birth ? `<div class="stat"><b class="num" style="font-size:14px">${PROFILE.birth}</b><span>tug'ilgan kun</span></div>` : ''}
+    </div>
+    <div class="notice" style="margin-top:14px"><span>◆</span><span>Prototipda to'ldirish simulyatsiya qilinadi. Haqiqiy versiyada Click, Payme yoki Uzum orqali ulanadi.</span></div>
+    <div class="actions">
+      <button class="btn ghost" id="top50">+50 000</button>
+      <button class="btn primary" id="top100">+100 000</button>
+    </div>
+    <button class="linkbtn" id="editProf">${named ? 'Ma\'lumotlarni o\'zgartirish' : 'Hisobni to\'ldirish'}</button>`;
+  const top = v => { state.balance += v; document.getElementById('balance').textContent = state.balance.toLocaleString('ru-RU'); haptic('medium'); closeSheet(); };
+  document.getElementById('top50').onclick = ()=>top(50000);
+  document.getElementById('top100').onclick = ()=>top(100000);
+  document.getElementById('editProf').onclick = ()=>{
+    closeSheet();
+    if(PROFILE && PROFILE.name){
+      document.getElementById('oName').value  = PROFILE.name;
+      document.getElementById('oPhone').value = PROFILE.phone || '';
+      document.getElementById('oBirth').value = PROFILE.birth || '';
+      pickedGender = PROFILE.gender || '';
+      document.querySelectorAll('#oGender button').forEach(x=>x.setAttribute('aria-pressed', x.dataset.g===pickedGender));
+    }
+    showOnb();
+  };
+  scrim.classList.add('on'); sheet.classList.add('on');
+};
+
+/* ================= ADMIN ================= */
+const MAIN_SEL = ['.cover','.mapwrap','.filters','.listhead','ul.stations','.empty','.foot'];
+const adminView = document.getElementById('adminView');
+
+function setAdmin(on){
+  MAIN_SEL.forEach(sel=>{
+    const el = document.querySelector(sel);
+    if(el) el.style.display = on ? 'none' : '';
+  });
+  adminView.classList.toggle('on', on);
+  if(on){ renderAdmin(); hideOnb(); }
+  else { render(); }
+}
+
+function nextId(){ return 1000 + CUSTOM.length; }
+
+function spreadPos(i){
+  // sxematik xaritada joylashtirish — real koordinata emas
+  const ang = (i * 2.399) % (Math.PI * 2);
+  const rad = 48 + ((i * 29) % 90);
+  return { x: Math.round(196 + Math.cos(ang) * rad), y: Math.round(150 + Math.sin(ang) * rad * 0.8) };
+}
+
+function renderAdmin(){
+  document.getElementById('aCount').textContent = CUSTOM.length;
+  const list = document.getElementById('aList');
+  list.innerHTML = CUSTOM.length ? CUSTOM.map(s=>`
+    <div class="arow">
+      <span class="dot" style="background:${OPS[s.op].hex}"></span>
+      <div class="ab"><b>${s.n}</b><span>${OPS[s.op].name} · ${s.c[0][1]} kW · ${s.p.toLocaleString('ru-RU')} so'm</span></div>
+      <button class="del" data-del="${s.id}">O'chirish</button>
+    </div>`).join('')
+    : `<p class="lede">Hali qo'shilmagan.</p>`;
+  list.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick = ()=>{
+      CUSTOM = CUSTOM.filter(x=>x.id !== +btn.dataset.del);
+      LS.set('vz_stations', CUSTOM); refreshAll(); renderAdmin(); haptic();
+    };
+  });
+  document.getElementById('aExport').value = CUSTOM.length
+    ? CUSTOM.map(s=>`  {id:${s.id}, n:${JSON.stringify(s.n)}, a:${JSON.stringify(s.a)}, op:'${s.op}', x:${s.x}, y:${s.y}, p:${s.p}, free:true, c:[[${JSON.stringify(s.c[0][0])},${s.c[0][1]}]]},`).join('\n')
+    : '';
+}
+
+document.getElementById('aAdd').onclick = ()=>{
+  const n  = document.getElementById('aName').value.trim();
+  const a  = document.getElementById('aAddr').value.trim();
+  const op = document.getElementById('aOp').value;
+  const ct = document.getElementById('aConn').value;
+  const kw = parseInt(document.getElementById('aKw').value, 10);
+  const p  = parseInt(document.getElementById('aPrice').value, 10);
+  const err = document.getElementById('aErr');
+  if(n.length < 2){ err.textContent = 'Stansiya nomini kiriting.'; return; }
+  if(!kw || kw <= 0){ err.textContent = 'Quvvatni raqam bilan kiriting.'; return; }
+  if(!p || p <= 0){ err.textContent = 'Narxni raqam bilan kiriting.'; return; }
+  err.textContent = '';
+  const pos = spreadPos(CUSTOM.length);
+  CUSTOM.push({ id: nextId(), n, a: a || '—', op, x: pos.x, y: pos.y, p, free: true, c: [[ct, kw]] });
+  if(!LS.set('vz_stations', CUSTOM)) err.textContent = 'Saqlanmadi — brauzer xotirasi yopiq.';
+  refreshAll();
+  ['aName','aAddr','aKw','aPrice'].forEach(id=>document.getElementById(id).value='');
+  renderAdmin(); haptic('medium');
+};
+
+document.getElementById('aCopy').onclick = async ()=>{
+  const ta = document.getElementById('aExport');
+  if(!ta.value){ return; }
+  try { await navigator.clipboard.writeText(ta.value); document.getElementById('aCopy').textContent = 'Nusxalandi'; }
+  catch(e){ ta.select(); document.getElementById('aCopy').textContent = 'Qo\'lda nusxalang'; }
+  setTimeout(()=>{ document.getElementById('aCopy').textContent = 'Nusxalash'; }, 1800);
+};
+
+document.getElementById('aExit').onclick = ()=>{ location.hash = ''; setAdmin(false); haptic(); };
+
+function routeHash(){ setAdmin(location.hash.replace('#','').toLowerCase() === 'admin'); }
+window.addEventListener('hashchange', routeHash);
+
+/* ================= BOSHLASH ================= */
 render();
+routeHash();
+if(location.hash.toLowerCase() !== '#admin' && !PROFILE) showOnb();
 </script>
